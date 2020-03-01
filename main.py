@@ -37,14 +37,10 @@ def process_input(i: str, player: Player, board: Board):
         if not i[1].isnumeric():
             print("Please enter a number corresponding to a card in your hand")
         else:
-            raise NotImplementedError
-            board.end_turn()
-            # idx = int(i[1])
-            # if idx >=0 and idx < len(player.hand):
-            #     card = player.hand[idx]
-            #     player.hand.remove(card)
-            #     ACTION_STACK.add_action(player=player, card=card)
-            #     board.discard_card(card)
+            if player.bank >= 10:
+                process_action(2, player)
+            else:
+                process_action(int(i[1]), player)
     elif i[0] == "hand":
         board.display_hand(player)
     elif i[0] == "board":
@@ -61,14 +57,46 @@ def REPL(board: Board):
     game_over, winner = check_win(board.players)
     while not game_over:
         p_turn = board.players[board.turn]
-        print("{} it is your turn".format(p_turn.name))
-        prompt_user()
-        i = input()
-        process_input(i, p_turn, board)
-        #End of action
-        game_over, winner = check_win(board.players)
+        if p_turn.influence <= 0:
+            board.end_turn()
+        else:
+            print("{} it is your turn".format(p_turn.name))
+            prompt_user()
+            i = input()
+            process_input(i, p_turn, board)
+            #End of action
+            game_over, winner = check_win(board.players)
     
     print("{} has won the game!".format(winner))
+
+def counter_action(player: Player):
+    """
+    Return True if action should still be carried out, False if the action does not happen
+    """
+    #CHECK FOR COUNTER ACTION, IF YES THEN RETURN VALUE OF CHALLENGE, OTHERWISE JUST RETURN TRUE#
+    return True
+
+def challenge(cplayer: player, challenger: Player):
+    """
+    Resolve Challenge - handle challenge upkeep,
+    
+    Return True if action should still be carried out, False if the action does not happen
+    """
+    return True
+
+def process_action(action: int, player: Player, board : Board):
+    if action == 1:
+        #Income#
+        player.bank += 1
+        board.end_turn()
+    if action == 2:
+        #Foreign Aid#
+        allowed = counter_action(player)
+        if allowed:
+            player.bank += 2
+        board.end_turn()
+
+
 
 if __name__ == '__main__':
     """
