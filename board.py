@@ -3,6 +3,7 @@ from player import Player
 from deck import Deck
 from typing import List
 from card import Card
+import constants
 
 class Board():
 
@@ -11,9 +12,16 @@ class Board():
 
     def end_turn(self):
         self.turn = (self.turn + 1) % len(self.players)
+        constants.clear_terminal()
 
     def display_board(self):
-        print("Not Implemented - I hope you have a good memory")
+        print("Player's Influence:")
+        for player in self.players:
+            print("    {}: {}".format(player.name, player.influence))
+        print()
+        print("Revealed Cards:")
+        for card in self.revealed:
+            print("    {}".format(card.type))
     
     def display_hand(self, player: Player):
         #May display more than his hand, but not in basic version
@@ -27,6 +35,7 @@ class Board():
         self.turn = 0
         self.deck = deck
         self.players = players
+        self.revealed = []
 
         #Deal intial hands
         for player in self.players:

@@ -1,12 +1,6 @@
 from typing import List, Tuple
-from constants import CardType
+from enum import Enum
 
-
-class Card:
-
-    def __init__(self, card_type: CardType, description: str = ""):
-        self.type = card_type  # type: CardType
-        self.description = description # type: str
 
 class CardType(Enum):
     Ambassador = "Ambassador"
@@ -14,5 +8,11 @@ class CardType(Enum):
     Contessa = "Contessa"
     Captain = "Captain"
     Duke = "Duke"
+
+class Card:
+
+    def __init__(self, card_type: CardType, description: str = ""):
+        self.type = card_type  # type: CardType
+        self.description = description # type: str
 
 

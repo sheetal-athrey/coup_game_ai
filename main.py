@@ -1,5 +1,13 @@
 import sys
+import os
+import constants
+from player import Player
+from board import Board
+from deck import Deck
+from card import Card, CardType
 
+def prompt_user():
+    print("> ", end="")
 
 def check_win(players: Player):
     """
@@ -12,11 +20,13 @@ def check_win(players: Player):
         game_over - boolean - True if game is over, false otherwise
         winner - string - Name of the winner if game_over is true
     """
+    has_influence = 0
+    winner = ""
     for player in players:
-        win = False #You can never win, ahahahahaha
-        if win:
-            return win, player.name
-    return False, ""
+        if player.influence > 0:
+            has_influence += 1
+            winner = player.name
+    return has_influence <= 1, winner
 
 def process_input(i: str, player: Player, board: Board):
     i.strip()
@@ -28,6 +38,7 @@ def process_input(i: str, player: Player, board: Board):
             print("Please enter a number corresponding to a card in your hand")
         else:
             raise NotImplementedError
+            board.end_turn()
             # idx = int(i[1])
             # if idx >=0 and idx < len(player.hand):
             #     card = player.hand[idx]
@@ -42,38 +53,22 @@ def process_input(i: str, player: Player, board: Board):
         print("Type 'help' for instructions")
     print()
 
-def prompt_user():
-    print("> ", end="")
-
 def REPL(board: Board):
     """
     players - Players list - A list of player objects that represent the players.
     board - Board - a fresh board to start the game
     """
     game_over, winner = check_win(board.players)
-    old_p = None
     while not game_over:
-        if len(ACTION_STACK.stack) > 0:
-            #ASK FOR NEIGHS HERE#
-            ACTION_STACK.process_stack(board)
-            #if player has only one action:
-            board.end_turn()
-        else:
-            p_turn = board.players[board.turn]
-            if old_p != p_turn:
-                #process disabilities for card in player.hand {card_effect.activate(card)}#
-                board.draw_card(p_turn)
-            print("{} it is your turn".format(p_turn.name))
-            prompt_user()
-            i = input()
-            process_input(i, p_turn, board)
-
-            old_p = p_turn
-            #End of action
-            game_over, winner = check_win(board.players)
+        p_turn = board.players[board.turn]
+        print("{} it is your turn".format(p_turn.name))
+        prompt_user()
+        i = input()
+        process_input(i, p_turn, board)
+        #End of action
+        game_over, winner = check_win(board.players)
     
     print("{} has won the game!".format(winner))
-
 
 if __name__ == '__main__':
     """
@@ -92,13 +87,18 @@ if __name__ == '__main__':
     #Instantiate Players
     player_list = []
     for x in range(num_players):
-        print("What is your name stablemasta {}?".format(x+1))
+        print("What is your name p{}?".format(x+1))
         prompt_user()
         i = input()
         player_list.append(Player(i))
         print()
 
     #Instantiate Board
+    d = []
+    for t in CardType:
+        print(t)
+        for _ in range(constants.NUM_COPIES):
+            d.append(Card(t))
 
     deck = Deck(d)
     board = Board(player_list, deck)

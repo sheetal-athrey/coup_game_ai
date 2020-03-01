@@ -1,4 +1,5 @@
 from card import Card
+from typing import List
 #Set up a super simply 
 class Player():
     def display_hand(self):
@@ -7,8 +8,8 @@ class Player():
             card = self.hand[i]
             print("{} - Type: {}".format(i, card.type))
 
-    def __init__(self, name: str, cards: List[Card]):
+    def __init__(self, name: str):
         self.name = name
-        self.hand = cards
+        self.hand = []
         self.bank = 2 # initial monies
         self.influence = 2
