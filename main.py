@@ -5,11 +5,14 @@ from player import Player
 from board import Board
 from deck import Deck
 from card import Card, CardType
+from typing import List, Tuple
+
 
 def prompt_user():
     print("> ", end="")
 
-def check_win(players: Player):
+
+def check_win(players: List[Player]) -> Tuple[bool, str]:
     """
     Returns a tuple representing the game is over and who the winner is.
 
@@ -20,36 +23,36 @@ def check_win(players: Player):
         game_over - boolean - True if game is over, false otherwise
         winner - string - Name of the winner if game_over is true
     """
-    has_influence = 0
-    winner = ""
     for player in players:
-        if player.influence > 0:
-            has_influence += 1
-            winner = player.name
-    return has_influence <= 1, winner
+        if player.influence == 0:
+            return True, player.name
+    return False, ""
 
-def process_input(i: str, player: Player, board: Board):
-    i.strip()
-    i = i.split()
-    if i[0] == "help":
+
+def process_input(input_string: str, player: Player, board: Board):
+    input_string.strip()
+    input_list = input_string.split()
+
+    if input_list[0] == "help":
         print(constants.HELP_STRING)
-    elif i[0] == "play":
-        if not i[1].isnumeric():
-            print("Please enter a number corresponding to a card in your hand")
+    elif input_list[0] == "play":
+        if not input_list[1].isnumeric():
+            print("Please enter a number corresponding to a card in your hand") # TODO the workflow here is unclear
         else:
             if player.bank >= 10:
                 process_action(2, player)
             else:
-                process_action(int(i[1]), player)
-    elif i[0] == "hand":
+                process_action(int(input_list[1]), player)
+    elif input_list[0] == "hand":
         board.display_hand(player)
-    elif i[0] == "board":
+    elif input_list[0] == "board":
         board.display_board()
     else:
         print("Type 'help' for instructions")
     print()
 
-def REPL(board: Board):
+
+def repl(board: Board):
     """
     players - Players list - A list of player objects that represent the players.
     board - Board - a fresh board to start the game
@@ -69,6 +72,7 @@ def REPL(board: Board):
     
     print("{} has won the game!".format(winner))
 
+
 def counter_action(player: Player):
     """
     Return True if action should still be carried out, False if the action does not happen
@@ -76,13 +80,15 @@ def counter_action(player: Player):
     #CHECK FOR COUNTER ACTION, IF YES THEN RETURN VALUE OF CHALLENGE, OTHERWISE JUST RETURN TRUE#
     return True
 
-def challenge(cplayer: player, challenger: Player):
+
+def challenge(cplayer: Player, challenger: Player):
     """
     Resolve Challenge - handle challenge upkeep,
     
     Return True if action should still be carried out, False if the action does not happen
     """
     return True
+
 
 def process_action(action: int, player: Player, board : Board):
     if action == 1:
@@ -95,7 +101,6 @@ def process_action(action: int, player: Player, board : Board):
         if allowed:
             player.bank += 2
         board.end_turn()
-
 
 
 if __name__ == '__main__':
@@ -130,10 +135,5 @@ if __name__ == '__main__':
 
     deck = Deck(d)
     board = Board(player_list, deck)
+    repl(board)
 
-    REPL(board)
-
-
-
-
-    
