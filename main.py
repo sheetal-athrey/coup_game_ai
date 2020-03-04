@@ -37,7 +37,7 @@ def process_input(input_string: str, player: Player, board: Board):
         print(constants.HELP_STRING)
     elif input_list[0] == "play":
         if not input_list[1].isnumeric():
-            print("Please enter a number corresponding to a card in your hand") # TODO the workflow here is unclear
+            print("Please enter a number corresponding to an action") # TODO the workflow here is unclear
         else:
             if player.bank >= 10:
                 process_action(2, player)
@@ -91,16 +91,20 @@ def challenge(cplayer: Player, challenger: Player):
 
 
 def process_action(action: int, player: Player, board : Board):
-    if action == 1:
+    if action == 0:
         #Income#
         player.bank += 1
         board.end_turn()
-    if action == 2:
+    elif action == 1:
         #Foreign Aid#
         allowed = counter_action(player)
         if allowed:
             player.bank += 2
         board.end_turn()
+    elif action == 2:
+        print("Which player would you like to target?")
+        prompt_user()
+
 
 
 if __name__ == '__main__':
