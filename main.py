@@ -1,6 +1,7 @@
 import sys
 import os
 import constants
+import random
 from player import Player
 from board import Board
 from deck import Deck
@@ -73,20 +74,55 @@ def repl(board: Board):
     print("{} has won the game!".format(winner))
 
 
-def counter_action(player: Player):
+def counter_action(player: Player, cPlayers: List[Player], action: str):
     """
     Return True if action should still be carried out, False if the action does not happen
     """
     #CHECK FOR COUNTER ACTION, IF YES THEN RETURN VALUE OF CHALLENGE, OTHERWISE JUST RETURN TRUE#
+    challengers = []
+    for p in cPlayers:
+        not_answered = True
+        while not_answered:
+            print("{} is trying to {}, would you like to counteract this action? y/n".format(player.name, action))
+            prompt_user()
+            i = input()
+            if i.lower() == 'y':
+                challengers.append((p,True))
+                not_answered = False
+            elif i.lower() == 'n':
+                challengers.append((p,False))
+                not_answered = False
+            else:
+                print("Please put in 'y' for yes or 'n' for no")
+        constants.clear_terminal()
+    
+    random.shuffle(challengers)
+    for (cPlayer,chal) in challengers:
+        if chal:
+            return challenge(player, cPlayer)
+
     return True
 
 
-def challenge(cplayer: Player, challenger: Player):
+def challenge(player: Player, challenger: Player):
     """
     Resolve Challenge - handle challenge upkeep,
     
     Return True if action should still be carried out, False if the action does not happen
     """
+    not_answered = True
+    while not_answered:
+        print("{} is counteracting your action, would you like to challenge this counteraction? y/n".format(player.name))
+        prompt_user()
+        i = input()
+        if i.lower() == 'y':
+            #Handle Challenge#
+            not_answered = False
+        elif i.lower() == 'n':
+            not_answered = False
+            return False
+        else:
+            print("Please put in 'y' for yes or 'n' for no")
     return True
 
 
@@ -96,8 +132,10 @@ def process_action(action: int, player: Player, board : Board):
         player.bank += 1
         board.end_turn()
     if action == 2:
-        #Foreign Aid#
-        allowed = counter_action(player)
+        action = "take Foreign Aid"
+        possible_challengers = board.players.copy()
+        possible_challengers.remove(player)
+        allowed = counter_action(player, possible_challengers, action)
         if allowed:
             player.bank += 2
         board.end_turn()
