@@ -12,7 +12,6 @@ class Board():
 
     def end_turn(self):
         self.turn = (self.turn + 1) % len(self.players)
-        constants.clear_terminal()
 
     def display_board(self):
         print("Player's Influence:")

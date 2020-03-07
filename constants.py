@@ -1,4 +1,5 @@
 import os
+from enum import Enum, auto
 
 HELP_STRING = """
 To play the following actions type 'play #' with # being any of the corresponding numbers:
@@ -19,3 +20,15 @@ NUM_COPIES = 3
 
 def clear_terminal():
     os.system('cls||clear')
+
+class CardType(Enum):
+    Ambassador = "Ambassador"
+    Assassin = "Assassin"
+    Contessa = "Contessa"
+    Captain = "Captain"
+    Duke = "Duke"
+
+class CounterActions(Enum):
+    BlockForeignAid = [CardType.Duke]
+    BlockAssassination = [CardType.Contessa]
+    BlockStealing = [CardType.Captain, CardType.Ambassador]

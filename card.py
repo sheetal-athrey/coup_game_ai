@@ -1,13 +1,6 @@
 from typing import List, Tuple
 from enum import Enum
-
-
-class CardType(Enum):
-    Ambassador = "Ambassador"
-    Assassin = "Assassin"
-    Contessa = "Contessa"
-    Captain = "Captain"
-    Duke = "Duke"
+from constants import CardType
 
 class Card:
 

@@ -41,9 +41,9 @@ def process_input(input_string: str, player: Player, board: Board):
             print("Please enter a number corresponding to an action") # TODO the workflow here is unclear
         else:
             if player.bank >= 10:
-                process_action(2, player)
+                process_action(2, player, board)
             else:
-                process_action(int(input_list[1]), player)
+                process_action(int(input_list[1]), player, board)
     elif input_list[0] == "hand":
         board.display_hand(player)
     elif input_list[0] == "board":
@@ -74,56 +74,93 @@ def repl(board: Board):
     print("{} has won the game!".format(winner))
 
 
-def counter_action(player: Player, cPlayers: List[Player], action: str):
+def counter_action(player: Player, cPlayers: List[Player], action: str, claimedCards : List[CardType], board: Board):
     """
     Return True if action should still be carried out, False if the action does not happen
     """
-    #CHECK FOR COUNTER ACTION, IF YES THEN RETURN VALUE OF CHALLENGE, OTHERWISE JUST RETURN TRUE#
+    #Format string to ask players#
     challengers = []
+    s = "{} is trying to {}, would you like to counteract this action?\n Please type one of the following choices:\n 0 - Do nothing\n".format(player.name, action)
+    for idx, card in enumerate(claimedCards):
+        s += " {} - Counter - Claim to have {}\n".format(idx+1, card) 
+
+    #Loop through possible players and see if they would like to invoke a counteraction#
     for p in cPlayers:
         not_answered = True
         while not_answered:
-            print("{} is trying to {}, would you like to counteract this action? y/n".format(player.name, action))
+            print("Notice for {}:\n".format(p.name) + s)
             prompt_user()
             i = input()
-            if i.lower() == 'y':
-                challengers.append((p,True))
-                not_answered = False
-            elif i.lower() == 'n':
-                challengers.append((p,False))
+            if not i.isnumeric():
+                print("Please put in a numeric value")
+            elif int(i) >= 0 and int(i) <= len(claimedCards):
+                i = int(i)
+                if i == 0: 
+                    challengers.append((p,False,None))
+                else:
+                    i -= 1
+                    challengers.append((p, True, claimedCards[i]))
                 not_answered = False
             else:
-                print("Please put in 'y' for yes or 'n' for no")
+                print("Please put in a value between 0 and {}".format(len(claimedCards)))
         constants.clear_terminal()
+        print("just past clear")
     
+    #PseudoRandom way of representing people speaking out of turn#
     random.shuffle(challengers)
-    for (cPlayer,chal) in challengers:
+
+    #Check if anyone chose to invoke a counter action and determine if the initial player would like to challenge the counteraction#
+    for (cPlayer,chal,card) in challengers:
         if chal:
-            return challenge(player, cPlayer)
+            not_answered = True
+            while not_answered:
+                print("""Notice for {}:\n{} is counteracting your action by claiming to have {}.\nWould you like to challenge this? y/n""".format(player.name, cPlayer.name, card))
+                prompt_user()
+                i = input()
+                if i.lower() == 'y':
+                    #Handle Challenge#
+                    return challenge(cPlayer, player, card, board)
+                elif i.lower() == 'n':
+                    not_answered = False
+                    return False
+                else:
+                    print("Please put in 'y' for yes or 'n' for no")
 
     return True
 
 
-def challenge(player: Player, challenger: Player):
+def challenge(player: Player, challenger: Player, claimedCard: CardType, board: Board):
     """
     Resolve Challenge - handle challenge upkeep,
     
     Return True if action should still be carried out, False if the action does not happen
     """
-    not_answered = True
-    while not_answered:
-        print("{} is counteracting your action, would you like to challenge this counteraction? y/n".format(player.name))
-        prompt_user()
-        i = input()
-        if i.lower() == 'y':
-            #Handle Challenge#
-            not_answered = False
-        elif i.lower() == 'n':
-            not_answered = False
-            return False
-        else:
-            print("Please put in 'y' for yes or 'n' for no")
-    return True
+    has_card = False
+    c_idx = None
+    for idx, card in enumerate(player.hand):
+        if card.type == claimedCard:
+            c_idx = idx
+            has_card = True
+    
+
+    if has_card:
+        print("{} had a {}".format(player.name, claimedCard))
+        card = player.hand.pop(c_idx)
+        board.deck.add_bottom(card)
+        player.hand.append(board.deck.draw_cards(1)[0])
+        liar = challenger
+    else: 
+        print("{} did not have a {}".format(player.name, claimedCard))
+        liar = player
+
+    r_idx = random.randint(0, len(liar.hand)-1)
+
+    revealed_card = liar.hand.pop(r_idx)
+    liar.influence -= 1
+    print("{} has been revealed".format(revealed_card.type))
+    board.revealed.append(revealed_card)
+
+    return liar == player
 
 
 def process_action(action: int, player: Player, board : Board):
@@ -135,7 +172,7 @@ def process_action(action: int, player: Player, board : Board):
         action = "take Foreign Aid"
         possible_challengers = board.players.copy()
         possible_challengers.remove(player)
-        allowed = counter_action(player, possible_challengers, action)
+        allowed = counter_action(player, possible_challengers, action, constants.CounterActions.BlockForeignAid.value, board)
         if allowed:
             player.bank += 2
         board.end_turn()
@@ -171,7 +208,6 @@ if __name__ == '__main__':
     #Instantiate Board
     d = []
     for t in CardType:
-        print(t)
         for _ in range(constants.NUM_COPIES):
             d.append(Card(t))
 
