@@ -74,14 +74,14 @@ def repl(board: Board):
     print("{} has won the game!".format(winner))
 
 
-def counter_action(player: Player, cPlayers: List[Player], action: str, claimedCards : List[CardType], board: Board):
+def counter_action(player: Player, cPlayers: List[Player], action: str, counterCards : List[CardType], board: Board):
     """
     Return True if action should still be carried out, False if the action does not happen
     """
     #Format string to ask players#
     challengers = []
     s = "{} is trying to {}, would you like to counteract this action?\n Please type one of the following choices:\n 0 - Do nothing\n".format(player.name, action)
-    for idx, card in enumerate(claimedCards):
+    for idx, card in enumerate(counterCards):
         s += " {} - Counter - Claim to have {}\n".format(idx+1, card) 
 
     #Loop through possible players and see if they would like to invoke a counteraction#
@@ -93,16 +93,16 @@ def counter_action(player: Player, cPlayers: List[Player], action: str, claimedC
             i = input()
             if not i.isnumeric():
                 print("Please put in a numeric value")
-            elif int(i) >= 0 and int(i) <= len(claimedCards):
+            elif int(i) >= 0 and int(i) <= len(counterCards):
                 i = int(i)
                 if i == 0: 
                     challengers.append((p,False,None))
                 else:
                     i -= 1
-                    challengers.append((p, True, claimedCards[i]))
+                    challengers.append((p, True, counterCards[i]))
                 not_answered = False
             else:
-                print("Please put in a value between 0 and {}".format(len(claimedCards)))
+                print("Please put in a value between 0 and {}".format(len(counterCards)))
         constants.clear_terminal()
         print("just past clear")
     
