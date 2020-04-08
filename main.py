@@ -176,9 +176,37 @@ def process_action(action: int, player: Player, board : Board):
         if allowed:
             player.bank += 2
         board.end_turn()
-    elif action == 2:
+    elif action == 2 and player.bank >= 7:
+        #coup#
         print("Which player would you like to target?")
         prompt_user()
+        targetted_user_name = input()
+        targetted_user = None
+        print("targetted_user_name", targetted_user_name)
+        for i in player_list:
+            if targetted_user_name in i.name:
+                targetted_user = i
+                break
+                
+        if targetted_user in board.players:
+            player.bank -= 7
+            r_idx = random.randint(0, len(targetted_user.hand)-1)
+            revealed_card = targetted_user.hand.pop(r_idx)
+            targetted_user.influence -= 1
+            print("{} has been revealed".format(revealed_card.type))
+            board.revealed.append(revealed_card)
+        print("sad")
+        board.end_turn()
+    elif action == 3:
+        action = "take Foreign Aid"
+        possible_challengers = board.players.copy()
+        possible_challengers.remove(player)
+        allowed = challenge(player, possible_challengers, action, constants.CounterActions.BlockForeignAid.value, board)
+        if allowed:
+            player.bank += 3
+        board.end_turn()
+        #TODO : Sheetal! Need to complete this sorry! 
+
 
 
 

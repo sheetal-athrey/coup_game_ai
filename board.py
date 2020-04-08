@@ -26,6 +26,9 @@ class Board():
         #May display more than his hand, but not in basic version
         player.display_hand()
 
+    def display_bank(self, player: Player):
+        player.display_bank()
+
     def draw_card(self, player: Player):
         card = self.deck.draw_cards(1)[0]
         player.hand.append(card)

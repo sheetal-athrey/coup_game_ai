@@ -7,7 +7,11 @@ class Player():
         for i in range(len(self.hand)):
             card = self.hand[i]
             print("{} - Type: {}".format(i, card.type))
-
+    
+    def display_hand(self):
+        print("{} has in their bank:".format(self.name))
+        print("{}").format(self.bank)
+        
     def __init__(self, name: str):
         self.name = name
         self.hand = []
