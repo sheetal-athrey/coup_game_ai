@@ -25,6 +25,9 @@ class Board():
         print("Revealed Cards:")
         for card in self.revealed:
             print("    {}".format(card.type))
+        print()
+        for i in self.lost_influence:
+            print("    {}".format(i.name))
     
     def display_hand(self, player: Player):
         #May display more than his hand, but not in basic version
@@ -42,6 +45,7 @@ class Board():
         self.deck = deck
         self.players = players
         self.revealed = []
+        self.lost_influence = []
 
         #Deal intial hands
         for player in self.players:
