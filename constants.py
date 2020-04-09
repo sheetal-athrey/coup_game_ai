@@ -14,6 +14,7 @@ To play the following actions type 'play #' with # being any of the correspondin
 Other Commands include:
 'hand' - To see the Influence card(s) you have
 'board' - To see how much influence each player has and any revealed cards.
+'bank' - To see how many coin(s) you have
 """
 
 NUM_COPIES = 3
@@ -28,7 +29,22 @@ class CardType(Enum):
     Captain = "Captain"
     Duke = "Duke"
 
+# class ActionType(Enum):
+#     Income = 0
+#     Foreign_aid = 1
+#     Coup = 2
+#     Tax = 3
+#     Assassinate = 4
+#     Steal = 5
+#     Exchange = 6
+
 class CounterActions(Enum):
     BlockForeignAid = [CardType.Duke]
     BlockAssassination = [CardType.Contessa]
     BlockStealing = [CardType.Captain, CardType.Ambassador]
+
+class ActionPowers(Enum):
+    Tax = [CardType.Duke]
+    Assassinate = [CardType.Assassin]
+    Steal = [CardType.Captain]
+    Exchange = [CardType.Ambassador]

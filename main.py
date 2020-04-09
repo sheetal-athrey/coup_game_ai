@@ -48,6 +48,8 @@ def process_input(input_string: str, player: Player, board: Board):
         board.display_hand(player)
     elif input_list[0] == "board":
         board.display_board()
+    elif input_list[0] == "bank":
+        board.display_bank(player)
     else:
         print("Type 'help' for instructions")
     print()
@@ -68,13 +70,14 @@ def repl(board: Board):
             prompt_user()
             i = input()
             process_input(i, p_turn, board)
+            #NEED TO EDIT THIS SO THAT WHEN USER HAS 10 COINS USER HAS TO COUP TODO oh also re-prompt user when they dont have enough coins for the action
             #End of action
             game_over, winner = check_win(board.players)
     
     print("{} has won the game!".format(winner))
 
 
-def counter_action(player: Player, cPlayers: List[Player], action: str, counterCards : List[CardType], board: Board):
+def counter_action(player: Player, cPlayers: List[Player], action: str, counterCards : List[CardType], board: Board, against_claim: bool = False):
     """
     Return True if action should still be carried out, False if the action does not happen
     """
@@ -82,7 +85,10 @@ def counter_action(player: Player, cPlayers: List[Player], action: str, counterC
     challengers = []
     s = "{} is trying to {}, would you like to counteract this action?\n Please type one of the following choices:\n 0 - Do nothing\n".format(player.name, action)
     for idx, card in enumerate(counterCards):
-        s += " {} - Counter - Claim to have {}\n".format(idx+1, card) 
+        if not against_claim:
+            s += " {} - Counter - Claim to have {}\n".format(idx+1, card) 
+        else:
+            s += " {} - Counter - Deny {} claim to having a {}\n".format(idx+1, player.name+"\'s",card)   
 
     #Loop through possible players and see if they would like to invoke a counteraction#
     for p in cPlayers:
@@ -110,22 +116,37 @@ def counter_action(player: Player, cPlayers: List[Player], action: str, counterC
     random.shuffle(challengers)
 
     #Check if anyone chose to invoke a counter action and determine if the initial player would like to challenge the counteraction#
-    for (cPlayer,chal,card) in challengers:
-        if chal:
-            not_answered = True
-            while not_answered:
-                print("""Notice for {}:\n{} is counteracting your action by claiming to have {}.\nWould you like to challenge this? y/n""".format(player.name, cPlayer.name, card))
-                prompt_user()
-                i = input()
-                if i.lower() == 'y':
-                    #Handle Challenge#
-                    return challenge(cPlayer, player, card, board)
-                elif i.lower() == 'n':
-                    not_answered = False
-                    return False
-                else:
-                    print("Please put in 'y' for yes or 'n' for no")
-
+    if not against_claim:
+        for (cPlayer,chal,card) in challengers:
+            if chal:
+                not_answered = True
+                while not_answered:
+                    print("""Notice for {}:\n{} is counteracting your action by claiming to have {}.\nWould you like to challenge this? y/n""".format(player.name, cPlayer.name, card))
+                    prompt_user()
+                    i = input()
+                    if i.lower() == 'y':
+                        #Handle Challenge#
+                        return challenge(cPlayer, player, card, board)
+                    elif i.lower() == 'n':
+                        not_answered = False
+                        return False
+                    else:
+                        print("Please put in 'y' for yes or 'n' for no")
+    else:
+        for (cPlayer,chal,card) in challengers:
+            if chal:
+                not_answered = True
+                while not_answered:
+                    print("""Notice for {}:\n{} is counteracting your action by claiming that you do not have a {}.\nWould you like to challenge this? y/n""".format(player.name, cPlayer.name, card))
+                    prompt_user()
+                    i = input()
+                    if i.lower() == 'y':
+                        return not(challenge(player, cPlayer, card, board))
+                    elif i.lower() == 'n':
+                        not_answered = False
+                        return False
+                    else:
+                        print("Please put in 'y' for yes or 'n' for no")
     return True
 
 
@@ -159,9 +180,24 @@ def challenge(player: Player, challenger: Player, claimedCard: CardType, board: 
     liar.influence -= 1
     print("{} has been revealed".format(revealed_card.type))
     board.revealed.append(revealed_card)
-
+    # print(liar == player, "in challenge")
     return liar == player
 
+def targetting_players(possible_targets:List[Player], player:Player):
+    s = """Notice for {}:\n Return in numeric value which player you would like to target.\n""".format(player.name)
+    for idx, i in enumerate(possible_targets):
+        s += "{} : {} \n".format(idx, i.name)
+    print(s)
+    not_answered = True
+    while not_answered:
+        prompt_user()
+        i = input()
+        if not i.isnumeric():
+            print("Please put in a numeric value")
+        elif int(i) >= 0 and int(i) <= len(possible_targets):
+            return possible_targets[int(i)]
+        else:
+            print("Please put in a value between 0 and {}".format(len(possible_targets)))
 
 def process_action(action: int, player: Player, board : Board):
     if action == 0:
@@ -178,16 +214,9 @@ def process_action(action: int, player: Player, board : Board):
         board.end_turn()
     elif action == 2 and player.bank >= 7:
         #coup#
-        print("Which player would you like to target?")
-        prompt_user()
-        targetted_user_name = input()
-        targetted_user = None
-        print("targetted_user_name", targetted_user_name)
-        for i in player_list:
-            if targetted_user_name in i.name:
-                targetted_user = i
-                break
-                
+        possible_challengers = board.players.copy()
+        possible_challengers.remove(player)
+        targetted_user = targetting_players(possible_challengers, player)
         if targetted_user in board.players:
             player.bank -= 7
             r_idx = random.randint(0, len(targetted_user.hand)-1)
@@ -195,17 +224,50 @@ def process_action(action: int, player: Player, board : Board):
             targetted_user.influence -= 1
             print("{} has been revealed".format(revealed_card.type))
             board.revealed.append(revealed_card)
-        print("sad")
         board.end_turn()
     elif action == 3:
-        action = "take Foreign Aid"
+        action = "Tax"
         possible_challengers = board.players.copy()
         possible_challengers.remove(player)
-        allowed = challenge(player, possible_challengers, action, constants.CounterActions.BlockForeignAid.value, board)
+        allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Tax.value, board, True)
         if allowed:
             player.bank += 3
         board.end_turn()
-        #TODO : Sheetal! Need to complete this sorry! 
+
+    elif action == 4:
+        action = "Assassinate"
+        possible_challengers = board.players.copy()
+        possible_challengers.remove(player)
+        allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Assassinate.value, board, True)
+        if (allowed and player.bank >= 3):
+            player.bank -= 3
+            targetted_user = targetting_players(possible_challengers, player)
+            if targetted_user in board.players:
+                assassin_allowed = counter_action(player, [targetted_user], action, constants.CounterActions.BlockAssassination.value, board)
+                if assassin_allowed:
+                    r_idx = random.randint(0, len(targetted_user.hand)-1)
+                    revealed_card = targetted_user.hand.pop(r_idx)
+                    targetted_user.influence -= 1
+                    print("{} has been revealed".format(revealed_card.type))
+                    board.revealed.append(revealed_card)
+        board.end_turn()
+
+    elif action == 5:
+        action = "Steal"
+        possible_challengers = board.players.copy()
+        possible_challengers.remove(player)
+        allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Steal.value, board, True)
+        if allowed:
+            targetted_user = targetting_players(possible_challengers, player)
+            if targetted_user in board.players:
+                steal_allowed = counter_action(player, [targetted_user], action, constants.CounterActions.BlockStealing.value, board)
+                if steal_allowed:
+                    targetted_user.bank -= 2
+                    player.bank += 2
+                    print("{} now has {} coins in bank".format(targetted_user.name, targetted_user.bank))
+        board.end_turn()
+    elif action == 6:
+        pass
 
 
 

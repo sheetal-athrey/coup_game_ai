@@ -18,6 +18,10 @@ class Board():
         for player in self.players:
             print("    {}: {}".format(player.name, player.influence))
         print()
+        print("Player's Bank:")
+        for player in self.players:
+            print("    {}: {}".format(player.name, player.bank))
+        print()
         print("Revealed Cards:")
         for card in self.revealed:
             print("    {}".format(card.type))

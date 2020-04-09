@@ -8,9 +8,9 @@ class Player():
             card = self.hand[i]
             print("{} - Type: {}".format(i, card.type))
     
-    def display_hand(self):
+    def display_bank(self):
         print("{} has in their bank:".format(self.name))
-        print("{}").format(self.bank)
+        print(self.bank)
         
     def __init__(self, name: str):
         self.name = name
