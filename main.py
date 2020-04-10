@@ -29,8 +29,9 @@ def check_win(players: List[Player]) -> Tuple[bool, str]:
         if player.influence == 0:
             total_players -= 1
     if total_players == 1:
-        if player.influence >0:
-            return True, player.name
+        for player in players:
+            if player.influence >0:
+                return True, player.name
     return False, ""
 
 

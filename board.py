@@ -26,6 +26,7 @@ class Board():
         for card in self.revealed:
             print("    {}".format(card.type))
         print()
+        print("Players who lost Influence:")
         for i in self.lost_influence:
             print("    {}".format(i.name))
     
