@@ -18,6 +18,7 @@ Other Commands include:
 """
 
 NUM_COPIES = 3
+NUM_EXCHANGE = 2
 
 def clear_terminal():
     os.system('cls||clear')

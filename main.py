@@ -289,7 +289,44 @@ def process_action(action: int, player: Player, board : Board):
                     print("{} now has {} coins in bank".format(targetted_user.name, targetted_user.bank))
         board.end_turn()
     elif action == 6:
-        pass
+        action = "Exchange"
+        possible_challengers = get_possible_challengers(board, player)
+        allowed = counter_action(player, possible_challengers, action , constants.ActionPowers.Exchange.value, board, True)
+
+        if allowed:
+            # Force player to select from cards in their hand and two random cards drawn from the deck.
+            new_cards = board.deck.draw_cards(constants.NUM_EXCHANGE)
+            possible_cards = player.hand + new_cards # type: List[Card]
+
+            # Display cards
+            for card_index in range(len(possible_cards)):
+                print(str(card_index) + ": " + str(possible_cards[card_index].type))
+            print("Please select {} card(s) by typing numbers spaced apart into the prompt. "
+                  "If a valid input is not provided then you will keep your current cards".format(player.influence))
+
+            prompt_user()
+            index_selected = input()
+
+            # Determine cards selected
+            parsed_cards = index_selected.split(" ")
+            parsed_cards = [int(i) for i in parsed_cards]
+
+            selected_cards = []
+            for i in range(player.influence):
+                selected_cards.append(possible_cards[parsed_cards[i]])
+
+            # Handle exchange transaction
+            if len(selected_cards) == player.influence:
+                player.hand = selected_cards
+
+                # Add unselected cards back to the deck
+                for j in range(len(possible_cards)):
+                    if j not in parsed_cards:
+                        deck.add_bottom(possible_cards[j])
+            else:
+                for card in possible_cards[player.influence:]:
+                    deck.add_bottom(card)
+            board.end_turn()
 
 
 if __name__ == '__main__':
