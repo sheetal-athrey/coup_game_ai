@@ -1,11 +1,9 @@
-import constants
 from player import Player
 from deck import Deck
 from typing import List
-from card import Card
-import constants
 
-class Board():
+
+class Board:
 
     def _deal_starting_hand(self, player: Player):
         player.hand = self.deck.draw_cards(2)
@@ -29,9 +27,9 @@ class Board():
         print("Players who lost Influence:")
         for i in self.lost_influence:
             print("    {}".format(i.name))
-    
+
     def display_hand(self, player: Player):
-        #May display more than his hand, but not in basic version
+        # May display more than his hand, but not in basic version
         player.display_hand()
 
     def display_bank(self, player: Player):
@@ -48,6 +46,6 @@ class Board():
         self.revealed = []
         self.lost_influence = []
 
-        #Deal intial hands
+        # Deal initial hands
         for player in self.players:
             self._deal_starting_hand(player)

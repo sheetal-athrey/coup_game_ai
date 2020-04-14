@@ -1,7 +1,16 @@
 from card import Card
-from typing import List
-#Set up a super simply 
-class Player():
+from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE
+from board import Board
+from typing import List, Tuple
+
+
+class Player:
+    def __init__(self, name: str):
+        self.name = name
+        self.hand = []
+        self.bank = STARTING_MONEY
+        self.influence = STARTING_INFLUENCE
+
     def display_hand(self):
         print("{} has the following cards:".format(self.name))
         for i in range(len(self.hand)):
@@ -11,9 +20,26 @@ class Player():
     def display_bank(self):
         print("{} has in their bank:".format(self.name))
         print(self.bank)
-        
+
+    def select_action(self, board) -> ActionType:
+        pass
+
+    def select_cards(self, board: Board, possible_cards: List[Card]) -> Tuple[List[Card], List[Card]]:
+        pass
+
+    def counteract_opponent(self, board: Board, action_taken: ActionType, opposing_player) -> bool:
+        pass
+
+    def challenge_opponent(self, board: Board, action_taken: ActionType, opposing_player):
+        pass
+
+
+class RandomPlayer(Player):
     def __init__(self, name: str):
-        self.name = name
-        self.hand = []
-        self.bank = 2 # initial monies
-        self.influence = 2
+        super().__init__(name)
+
+    def select_action(self, board) -> ActionType:
+        if self.bank >= 10:
+            return ActionType.Coup
+
+

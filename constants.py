@@ -19,9 +19,13 @@ Other Commands include:
 
 NUM_COPIES = 3
 NUM_EXCHANGE = 2
+STARTING_MONEY = 2
+STARTING_INFLUENCE = 2
+
 
 def clear_terminal():
     os.system('cls||clear')
+
 
 class CardType(Enum):
     Ambassador = "Ambassador"
@@ -30,19 +34,22 @@ class CardType(Enum):
     Captain = "Captain"
     Duke = "Duke"
 
-# class ActionType(Enum):
-#     Income = 0
-#     Foreign_aid = 1
-#     Coup = 2
-#     Tax = 3
-#     Assassinate = 4
-#     Steal = 5
-#     Exchange = 6
+
+class ActionType(Enum):
+    Income = 0
+    Foreign_aid = 1
+    Coup = 2
+    Tax = 3
+    Assassinate = 4
+    Steal = 5
+    Exchange = 6
+
 
 class CounterActions(Enum):
     BlockForeignAid = [CardType.Duke]
     BlockAssassination = [CardType.Contessa]
     BlockStealing = [CardType.Captain, CardType.Ambassador]
+
 
 class ActionPowers(Enum):
     Tax = [CardType.Duke]
