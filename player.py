@@ -1,6 +1,5 @@
 from card import Card
 from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE
-from board import Board
 from typing import List, Tuple
 
 
@@ -24,13 +23,13 @@ class Player:
     def select_action(self, board) -> ActionType:
         pass
 
-    def select_cards(self, board: Board, possible_cards: List[Card]) -> Tuple[List[Card], List[Card]]:
+    def select_cards(self, possible_cards: List[Card]) -> Tuple[List[Card], List[Card]]:
         pass
 
-    def counteract_opponent(self, board: Board, action_taken: ActionType, opposing_player) -> bool:
+    def counteract_opponent(self, action_taken: ActionType, opposing_player) -> bool:
         pass
 
-    def challenge_opponent(self, board: Board, action_taken: ActionType, opposing_player):
+    def challenge_opponent(self, action_taken: ActionType, opposing_player) -> bool:
         pass
 
 

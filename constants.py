@@ -43,6 +43,9 @@ class ActionType(Enum):
     Assassinate = 4
     Steal = 5
     Exchange = 6
+    Block_Foreign_Aid = 7
+    Block_Steal = 8
+    Block_Assassination = 9
 
 
 class CounterActions(Enum):
