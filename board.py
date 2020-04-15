@@ -1,12 +1,45 @@
 from player import Player
 from deck import Deck
-from typing import List
+from typing import List, Tuple
+from constants import RecordedActions
+from card import Card
 
 
 class Board:
 
     def _deal_starting_hand(self, player: Player):
         player.hand = self.deck.draw_cards(2)
+
+    def _initialize_player_view(self, player: Player):
+        init_claims = {}
+        for p in self.players: 
+            init_claims[p] = {}
+            for a in RecordedActions: 
+                init_claims[p][a] = 0
+
+        self.num_player = len(self.players)
+        self.player_claims = init_claims
+        self.players = self.players  # Gives pointer
+        self.revealed = self.revealed # Gives pointer
+        self.lost_influence = self.lost_influence  # Gives pointer
+
+    def update_player_actions(self, player: Player, rec_action : RecordedActions):
+        for p in self.players:
+            p.player_view.player_claims[player][rec_action] += 1
+
+    def update_deck_knowledge(self, player: Player, card_pos: List[Tuple(Card,int)]):
+        for card, pos in card_pos:
+            player.player_view.deck_knowledge[card] = pos
+
+    def update_card_drawn(self, num_drawn: int):
+        for player in self.players:
+            deck_knowledge = player.player_view.deck_knowledge
+            for card in deck_knowledge:
+                new_pos = deck_knowledge[card] - 1
+                if new_pos < 0:
+                    del deck_knowledge[card]
+                else:
+                    deck_knowledge[card] = new_pos
 
     def end_turn(self):
         self.turn = (self.turn + 1) % len(self.players)

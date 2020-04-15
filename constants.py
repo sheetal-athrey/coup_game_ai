@@ -47,6 +47,21 @@ class ActionType(Enum):
     Block_Steal = 8
     Block_Assassination = 9
 
+class RecordedActions(Enum):
+    Income = 0
+    Foreign_aid = 1
+    Coup = 2
+    Tax = 3
+    Assassinate = 4
+    Steal = 5
+    Exchange = 6
+    Block_Foreign_Aid = 7
+    Block_Steal = 8
+    Block_Assassination = 9
+    Fail_Block_Foreign = 10
+    Fail_Block_Steal = 11
+    Fail_Block_Assassination = 12 
+
 
 class CounterActions(Enum):
     BlockForeignAid = [CardType.Duke]
