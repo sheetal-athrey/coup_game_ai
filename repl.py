@@ -3,7 +3,7 @@ import constants
 import random
 
 from deck import Deck
-from player import Player
+from player import Player, RandomPlayer
 from board import Board
 from deck import Deck
 from card import Card, CardType
@@ -51,10 +51,13 @@ def repl(board: Board):
         if p_turn.influence <= 0:
             board.end_turn()
         else:
-            print("{} it is your turn".format(p_turn.name))
-            prompt_user()
-            i = input()
-            process_input(i, p_turn, board)
+            if isinstance(p_turn, RandomPlayer):
+                p_turn.select_action()
+            else:
+                print("{} it is your turn".format(p_turn.name))
+                prompt_user()
+                i = input()
+                process_input(i, p_turn, board)
             # End of action
             game_over, winner = check_win(board.players)
 
