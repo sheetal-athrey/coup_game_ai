@@ -181,7 +181,7 @@ def challenge(player: Player, challenger: Player, claimedCard: CardType, board: 
         liar = player
 
     lose_card(liar, board)
-    
+
     return liar == player
 
 
@@ -226,12 +226,14 @@ def process_action(action: int, player: Player, board: Board):
         board.update_player_actions(player, RecordedActions.Tax)
         board.end_turn()
 
-    elif action == 4:
+    elif action == 4 and player.bank >= 3:
         action = "Assassinate"
         possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Assassinate.value, board,
                                  True)
-        if (allowed and player.bank >= 3):
+
+        # TODO Check this (seems like a bug)
+        if allowed and player.bank >= 3:
             player.bank -= 3
 
             alive_opponents = get_alive_opponents(board, player)
@@ -259,6 +261,7 @@ def process_action(action: int, player: Player, board: Board):
         action = "Steal"
         possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Steal.value, board, True)
+        
         if allowed:
             alive_opponents = get_alive_opponents(board, player)
             targeted_user = player.select_targeted_player(constants.ActionType.Steal, alive_opponents)
@@ -292,13 +295,8 @@ def process_action(action: int, player: Player, board: Board):
             if len(selected_cards) == player.influence:
                 player.hand = selected_cards
 
-                # Add unselected cards back to the deck
-                for card in possible_cards:
-                    if card not in selected_cards:
-                        board.deck.add_bottom(card)
-                        bottom_cards.append((card, len(board.deck)))
-            else:
-                for card in possible_cards[player.influence:]:
+            for card in possible_cards:
+                if card not in player.hand:
                     board.deck.add_bottom(card)
                     bottom_cards.append((card, len(board.deck)))
 
