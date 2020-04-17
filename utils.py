@@ -34,7 +34,7 @@ def check_win(players: List[Player]) -> Tuple[bool, str]:
     return False, ""
 
 
-def get_possible_challengers(board: Board, player: Player) -> List[Player]:
+def get_alive_opponents(board: Board, player: Player) -> List[Player]:
     possible_challengers = board.players.copy()
     possible_challengers.remove(player)
     for i in board.lost_influence:

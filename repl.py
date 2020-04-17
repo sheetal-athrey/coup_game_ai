@@ -8,9 +8,21 @@ from board import Board
 from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple
-from utils import check_win, get_possible_challengers, prompt_user, process_counter
+from utils import check_win, get_alive_opponents, prompt_user, process_counter
 from constants import RecordedActions
 
+
+def lose_card(affected_player: Player, board: Board):
+    # TODO removing a card, we shouldn't reveal that it's a list underneath
+    r_idx = random.randint(0, len(affected_player.hand) - 1)
+    revealed_card = affected_player.hand.pop(r_idx)
+
+    affected_player.influence -= 1
+    print("{} has been revealed".format(revealed_card.type))
+    board.revealed.append(revealed_card)
+    if affected_player.influence == 0:
+        board.lost_influence.append(affected_player)
+        print("{} has lost influence".format(affected_player.name))
 
 def process_input(input_string: str, player: Player, board: Board):
     input_string.strip()
@@ -168,33 +180,9 @@ def challenge(player: Player, challenger: Player, claimedCard: CardType, board: 
         print("{} did not have a {}".format(player.name, claimedCard))
         liar = player
 
-    r_idx = random.randint(0, len(liar.hand) - 1)
-
-    revealed_card = liar.hand.pop(r_idx)
-    liar.influence -= 1
-    print("{} has been revealed".format(revealed_card.type))
-    board.revealed.append(revealed_card)
-    if liar.influence == 0:
-        board.lost_influence.append(liar)
-        print("{} has lost influence".format(liar.name))
+    lose_card(liar, board)
+    
     return liar == player
-
-
-def targeting_players(possible_targets:List[Player], player:Player):
-    s = "Notice for {}:\n Return in numeric value which player you would like to target.\n".format(player.name)
-    for idx, i in enumerate(possible_targets):
-        s += "{} : {} \n".format(idx, i.name)
-    print(s)
-    not_answered = True
-    while not_answered:
-        prompt_user()
-        i = input()
-        if not i.isnumeric():
-            print("Please put in a numeric value")
-        elif int(i) >= 0 and int(i) <= len(possible_targets):
-            return possible_targets[int(i)]
-        else:
-            print("Please put in a value between 0 and {}".format(len(possible_targets)))
 
 
 def process_action(action: int, player: Player, board: Board):
@@ -206,7 +194,7 @@ def process_action(action: int, player: Player, board: Board):
 
     if action == 1:
         action = "take Foreign Aid"
-        possible_challengers = get_possible_challengers(board, player)
+        possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.CounterActions.BlockForeignAid.value,
                                  board)
         if allowed:
@@ -220,23 +208,18 @@ def process_action(action: int, player: Player, board: Board):
 
     elif action == 2 and player.bank >= 7:
         # coup#
-        possible_challengers = get_possible_challengers(board, player)
-        targeted_user = targeting_players(possible_challengers, player)
+        alive_opponents = get_alive_opponents(board, player)
+        targeted_user = player.select_targeted_player(constants.ActionType.Coup, alive_opponents)
         player.bank -= 7
-        r_idx = random.randint(0, len(targeted_user.hand) - 1)
-        revealed_card = targeted_user.hand.pop(r_idx)
-        targeted_user.influence -= 1
-        print("{} has been revealed".format(revealed_card.type))
-        board.revealed.append(revealed_card)
-        if targeted_user.influence == 0:
-            board.lost_influence.append(targeted_user)
-            print("{} has lost influence".format(targeted_user.name))
+
+        lose_card(targeted_user, board)
+
         board.update_player_actions(player, RecordedActions.Coup)
         board.end_turn()
 
     elif action == 3:
         action = "Tax"
-        possible_challengers = get_possible_challengers(board, player)
+        possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Tax.value, board, True)
         if allowed:
             player.bank += 3
@@ -245,14 +228,14 @@ def process_action(action: int, player: Player, board: Board):
 
     elif action == 4:
         action = "Assassinate"
-        possible_challengers = get_possible_challengers(board, player)
+        possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Assassinate.value, board,
                                  True)
         if (allowed and player.bank >= 3):
             player.bank -= 3
-           
-            possible_targets = get_possible_challengers(board, player)
-            targeted_user = targeting_players(possible_targets, player)
+
+            alive_opponents = get_alive_opponents(board, player)
+            targeted_user = player.select_targeted_player(constants.ActionType.Assassinate, alive_opponents)
 
             assassin_allowed = counter_action(player, [targeted_user], action,
                                               constants.CounterActions.BlockAssassination.value, board)
@@ -274,11 +257,11 @@ def process_action(action: int, player: Player, board: Board):
 
     elif action == 5:
         action = "Steal"
-        possible_challengers = get_possible_challengers(board, player)
+        possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Steal.value, board, True)
         if allowed:
-            possible_targets = get_possible_challengers(board, player)
-            targeted_user = targeting_players(possible_targets, player)
+            alive_opponents = get_alive_opponents(board, player)
+            targeted_user = player.select_targeted_player(constants.ActionType.Steal, alive_opponents)
             if targeted_user in board.players:
                 steal_allowed = counter_action(player, [targeted_user], action,
                                                constants.CounterActions.BlockStealing.value, board)
@@ -293,7 +276,7 @@ def process_action(action: int, player: Player, board: Board):
 
     elif action == 6:
         action = "Exchange"
-        possible_challengers = get_possible_challengers(board, player)
+        possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Exchange.value, board,
                                  True)
 
@@ -302,38 +285,22 @@ def process_action(action: int, player: Player, board: Board):
             new_cards = board.deck.draw_cards(constants.NUM_EXCHANGE)
             possible_cards = player.hand + new_cards  # type: List[Card]
 
-            # Display cards
-            for card_index in range(len(possible_cards)):
-                print(str(card_index) + ": " + str(possible_cards[card_index].type))
-            print("Please select {} card(s) by typing numbers spaced apart into the prompt. "
-                  "If a valid input is not provided then you will keep your current cards".format(player.influence))
-
-            prompt_user()
-            index_selected = input()
-
-            # Determine cards selected
-            parsed_cards = index_selected.split(" ")
-            parsed_cards = [int(i) for i in parsed_cards]
-
-            selected_cards = []
-            for i in range(player.influence):
-                selected_cards.append(possible_cards[parsed_cards[i]])
+            selected_cards = player.select_cards(possible_cards, player.influence)
 
             bottom_cards = []
-
             # Handle exchange transaction
             if len(selected_cards) == player.influence:
                 player.hand = selected_cards
 
                 # Add unselected cards back to the deck
-                for j in range(len(possible_cards)):
-                    if j not in parsed_cards:
-                        board.deck.add_bottom(possible_cards[j])
-                        bottom_cards.append((possible_cards[j],len(board.deck)))
+                for card in possible_cards:
+                    if card not in selected_cards:
+                        board.deck.add_bottom(card)
+                        bottom_cards.append((card, len(board.deck)))
             else:
                 for card in possible_cards[player.influence:]:
                     board.deck.add_bottom(card)
-                    bottom_cards.append((card,len(board.deck)))
+                    bottom_cards.append((card, len(board.deck)))
 
             board.update_deck_knowledge(player, bottom_cards)
             board.update_player_actions(player, RecordedActions.Exchange)
