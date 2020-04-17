@@ -8,21 +8,9 @@ from board import Board
 from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple
-from utils import check_win, get_alive_opponents, prompt_user, process_counter
+from utils import check_win, get_alive_opponents, prompt_user, process_counter, lose_card
 from constants import RecordedActions
 
-
-def lose_card(affected_player: Player, board: Board):
-    # TODO removing a card, we shouldn't reveal that it's a list underneath
-    r_idx = random.randint(0, len(affected_player.hand) - 1)
-    revealed_card = affected_player.hand.pop(r_idx)
-
-    affected_player.influence -= 1
-    print("{} has been revealed".format(revealed_card.type))
-    board.revealed.append(revealed_card)
-    if affected_player.influence == 0:
-        board.lost_influence.append(affected_player)
-        print("{} has lost influence".format(affected_player.name))
 
 def process_input(input_string: str, player: Player, board: Board):
     input_string.strip()
@@ -31,17 +19,9 @@ def process_input(input_string: str, player: Player, board: Board):
     if input_list[0] == "help":
         print(constants.HELP_STRING)
     elif input_list[0] == "play":
-        if not input_list[1].isnumeric():
-            print("Please enter a number corresponding to an action") # TODO the workflow here is unclear
-        else:
-            if player.bank >= 10:
-                process_action(2, player, board)
-            elif player.bank < 3 and (int(input_list[1])== 4) :
-                print("Not enough coins in bank for action: assassination, please pick another action") # TODO the workflow here is unclear
-            elif player.bank < 7 and (int(input_list[1])== 2) :
-                print("Not enough coins in bank for action: coup, please pick another action") # TODO the workflow here is unclear
-            else:
-                process_action(int(input_list[1]), player, board)
+        selected_action = player.select_action()
+        process_action(int(input_list[1]), player, board)
+
     elif input_list[0] == "hand":
         board.display_hand(player)
     elif input_list[0] == "board":
@@ -186,13 +166,13 @@ def challenge(player: Player, challenger: Player, claimedCard: CardType, board: 
 
 
 def process_action(action: int, player: Player, board: Board):
-    if action == 0:
+    if action == constants.ActionType.Income:
         # Income#
         player.bank += 1
         board.update_player_actions(player, RecordedActions.Income)
         board.end_turn()
 
-    if action == 1:
+    if action == constants.ActionType.Foreign_aid:
         action = "take Foreign Aid"
         possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.CounterActions.BlockForeignAid.value,
@@ -206,7 +186,7 @@ def process_action(action: int, player: Player, board: Board):
         board.update_player_actions(player, RecordedActions.Foreign_aid)
         board.end_turn()
 
-    elif action == 2 and player.bank >= 7:
+    elif action == constants.ActionType.Coup and player.bank >= 7:
         # coup#
         alive_opponents = get_alive_opponents(board, player)
         targeted_user = player.select_targeted_player(constants.ActionType.Coup, alive_opponents)
@@ -217,7 +197,7 @@ def process_action(action: int, player: Player, board: Board):
         board.update_player_actions(player, RecordedActions.Coup)
         board.end_turn()
 
-    elif action == 3:
+    elif action == constants.ActionType.Tax:
         action = "Tax"
         possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Tax.value, board, True)
@@ -226,18 +206,16 @@ def process_action(action: int, player: Player, board: Board):
         board.update_player_actions(player, RecordedActions.Tax)
         board.end_turn()
 
-    elif action == 4 and player.bank >= 3:
+    elif action == constants.ActionType.Assassinate and player.bank >= 3:
         action = "Assassinate"
-        possible_challengers = get_alive_opponents(board, player)
-        allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Assassinate.value, board,
+        alive_opponents = get_alive_opponents(board, player)
+        targeted_user = player.select_targeted_player(constants.ActionType.Assassinate, alive_opponents)
+
+        allowed = counter_action(player, [targeted_user], action, constants.ActionPowers.Assassinate.value, board,
                                  True)
 
-        # TODO Check this (seems like a bug)
-        if allowed and player.bank >= 3:
+        if allowed and targeted_user.influence > 0:
             player.bank -= 3
-
-            alive_opponents = get_alive_opponents(board, player)
-            targeted_user = player.select_targeted_player(constants.ActionType.Assassinate, alive_opponents)
 
             assassin_allowed = counter_action(player, [targeted_user], action,
                                               constants.CounterActions.BlockAssassination.value, board)
@@ -257,19 +235,24 @@ def process_action(action: int, player: Player, board: Board):
         board.update_player_actions(player, RecordedActions.Assassinate)
         board.end_turn()
 
-    elif action == 5:
+    elif action == constants.ActionType.Steal:
         action = "Steal"
-        possible_challengers = get_alive_opponents(board, player)
-        allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Steal.value, board, True)
-        
+
+        alive_opponents = get_alive_opponents(board, player)
+        targeted_user = player.select_targeted_player(constants.ActionType.Steal, alive_opponents)
+
+        allowed = counter_action(player, [targeted_user], action, constants.ActionPowers.Steal.value, board, True)
+
         if allowed:
-            alive_opponents = get_alive_opponents(board, player)
-            targeted_user = player.select_targeted_player(constants.ActionType.Steal, alive_opponents)
             if targeted_user in board.players:
+
+                # TODO This is confusing
                 steal_allowed = counter_action(player, [targeted_user], action,
                                                constants.CounterActions.BlockStealing.value, board)
                 if steal_allowed:
                     board.update_player_actions(targeted_user, RecordedActions.Fail_Block_Steal)
+
+                    # TODO this might not be two coins?
                     targeted_user.bank -= 2
                     player.bank += 2
                     print("{} now has {} coins in bank".format(targeted_user.name, targeted_user.bank))
@@ -277,7 +260,7 @@ def process_action(action: int, player: Player, board: Board):
         board.update_player_actions(player, RecordedActions.Steal)
         board.end_turn()
 
-    elif action == 6:
+    elif action == constants.ActionType.Exchange:
         action = "Exchange"
         possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Exchange.value, board,

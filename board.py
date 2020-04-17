@@ -27,7 +27,7 @@ class Board:
         for p in self.players:
             p.player_view.player_claims[player][rec_action] += 1
 
-    def update_deck_knowledge(self, player: Player, card_pos: List[Tuple(Card,int)]):
+    def update_deck_knowledge(self, player: Player, card_pos: List[Tuple[Card,int]]):
         for card, pos in card_pos:
             player.player_view.deck_knowledge[card] = pos
 

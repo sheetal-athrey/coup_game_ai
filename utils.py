@@ -7,9 +7,21 @@ from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple
 
-
 def prompt_user():
     print("> ", end="")
+
+
+def lose_card(affected_player: Player, board: Board):
+    # TODO removing a card, we shouldn't reveal that it's a list underneath
+    r_idx = random.randint(0, len(affected_player.hand) - 1)
+    revealed_card = affected_player.hand.pop(r_idx)
+
+    affected_player.influence -= 1
+    print("{} has been revealed".format(revealed_card.type))
+    board.revealed.append(revealed_card)
+    if affected_player.influence == 0:
+        board.lost_influence.append(affected_player)
+        print("{} has lost influence".format(affected_player.name))
 
 
 def check_win(players: List[Player]) -> Tuple[bool, str]:

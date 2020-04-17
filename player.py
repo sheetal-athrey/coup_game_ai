@@ -1,7 +1,7 @@
+from utils import prompt_user
 from card import Card
 from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE
 from typing import List, Tuple
-from repl import prompt_user
 
 
 class PlayerView:
@@ -33,7 +33,39 @@ class Player:
         print(self.bank)
 
     def select_action(self) -> ActionType:
-        pass
+        is_action_selected = False
+
+        while not is_action_selected:
+            prompt_user()
+            input_provided = input().strip()
+            if not input_provided.isnumeric():
+                print("Please enter a number corresponding to an action")  # TODO the workflow here is unclear
+            else:
+                if self.bank >= 10:
+                    return ActionType.Coup
+                elif self.bank < 3 and (int(input_provided) == 4):
+                    print(
+                        "Not enough coins in bank for action: assassination, please pick another action")  # TODO the workflow here is unclear
+                elif self.bank < 7 and (int(input_provided) == 2):
+                    print(
+                        "Not enough coins in bank for action: coup, please pick another action")  # TODO the workflow here is unclear
+                else:
+                    input_provided = int(input_provided)
+
+                    if input_provided == 0:
+                        return ActionType.Income
+                    elif input_provided == 1:
+                        return ActionType.Foreign_aid
+                    elif input_provided == 2:
+                        return ActionType.Coup
+                    elif input_provided == 3:
+                        return ActionType.Tax
+                    elif input_provided == 4:
+                        return ActionType.Assassinate
+                    elif input_provided == 5:
+                        return ActionType.Steal
+                    elif input_provided == 6:
+                        return ActionType.Exchange
 
     # For ambassador
     # Returns list of cards selected.
@@ -57,6 +89,7 @@ class Player:
 
         return selected_cards
 
+    # TODO need to combine these?
     def counteract_opponent(self, action_taken: ActionType, opposing_player) -> bool:
         pass
 
