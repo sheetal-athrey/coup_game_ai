@@ -32,9 +32,8 @@ class Player:
         print(self.bank)
 
     def select_action(self) -> ActionType:
-        is_action_selected = False
-
-        while not is_action_selected:
+        
+        while not True:
             prompt_user()
             input_provided = input().strip()
             if not input_provided.isnumeric():
