@@ -23,6 +23,10 @@ STARTING_MONEY = 2
 STARTING_INFLUENCE = 2
 
 
+def prompt_user():
+    print("> ", end="")
+
+
 def clear_terminal():
     os.system('cls||clear')
 

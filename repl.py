@@ -8,8 +8,8 @@ from board import Board
 from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple
-from utils import check_win, get_alive_opponents, prompt_user, process_counter, lose_card
-from constants import RecordedActions
+from utils import check_win, get_alive_opponents, process_counter, lose_card
+from constants import RecordedActions, prompt_user
 
 
 def process_input(input_string: str, player: Player, board: Board):
@@ -20,7 +20,7 @@ def process_input(input_string: str, player: Player, board: Board):
         print(constants.HELP_STRING)
     elif input_list[0] == "play":
         selected_action = player.select_action()
-        process_action(int(input_list[1]), player, board)
+        process_action(selected_action, player, board)
 
     elif input_list[0] == "hand":
         board.display_hand(player)
@@ -165,7 +165,7 @@ def challenge(player: Player, challenger: Player, claimedCard: CardType, board: 
     return liar == player
 
 
-def process_action(action: int, player: Player, board: Board):
+def process_action(action: constants.ActionType, player: Player, board: Board):
     if action == constants.ActionType.Income:
         # Income#
         player.bank += 1

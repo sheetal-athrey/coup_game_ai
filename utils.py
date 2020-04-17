@@ -7,9 +7,6 @@ from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple
 
-def prompt_user():
-    print("> ", end="")
-
 
 def lose_card(affected_player: Player, board: Board):
     # TODO removing a card, we shouldn't reveal that it's a list underneath

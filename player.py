@@ -1,6 +1,5 @@
-from utils import prompt_user
 from card import Card
-from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE
+from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE, prompt_user
 from typing import List, Tuple
 
 

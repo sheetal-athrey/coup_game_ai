@@ -7,7 +7,8 @@ from deck import Deck
 from card import Card, CardType
 from repl import repl
 from typing import List, Tuple
-from utils import prompt_user, check_win
+from utils import check_win
+from constants import prompt_user
 
 if __name__ == '__main__':
     """
