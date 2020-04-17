@@ -21,7 +21,6 @@ def process_input(input_string: str, player: Player, board: Board):
     elif input_list[0] == "play":
         selected_action = player.select_action()
         process_action(selected_action, player, board)
-
     elif input_list[0] == "hand":
         board.display_hand(player)
     elif input_list[0] == "board":
@@ -45,7 +44,8 @@ def repl(board: Board):
             board.end_turn()
         else:
             if isinstance(p_turn, RandomPlayer):
-                p_turn.select_action()
+                selected_action = p_turn.select_action()
+                process_action(selected_action, p_turn, board)
             else:
                 print("{} it is your turn".format(p_turn.name))
                 prompt_user()
