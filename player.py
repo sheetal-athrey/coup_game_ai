@@ -50,21 +50,9 @@ class Player:
                         "Not enough coins in bank for action: coup, please pick another action")  # TODO the workflow here is unclear
                 else:
                     input_provided = int(input_provided)
-
-                    if input_provided == 0:
-                        return ActionType.Income
-                    elif input_provided == 1:
-                        return ActionType.Foreign_aid
-                    elif input_provided == 2:
-                        return ActionType.Coup
-                    elif input_provided == 3:
-                        return ActionType.Tax
-                    elif input_provided == 4:
-                        return ActionType.Assassinate
-                    elif input_provided == 5:
-                        return ActionType.Steal
-                    elif input_provided == 6:
-                        return ActionType.Exchange
+                    for action in ActionType:
+                        if input_provided == action.value and action.value <= 6:
+                            return action
 
     # For ambassador
     # Returns list of cards selected.
