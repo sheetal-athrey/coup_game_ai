@@ -17,11 +17,11 @@ class Board:
             for a in RecordedActions: 
                 init_claims[p][a] = 0
 
-        self.num_player = len(self.players)
-        self.player_claims = init_claims
-        self.players = self.players  # Gives pointer
-        self.revealed = self.revealed # Gives pointer
-        self.lost_influence = self.lost_influence  # Gives pointer
+        player.player_view.num_player = len(self.players)
+        player.player_view.player_claims = init_claims.copy()
+        player.player_view.players = self.players  # Gives pointer
+        player.player_view.revealed = self.revealed # Gives pointer
+        player.player_view.lost_influence = self.lost_influence  # Gives pointer
 
     def update_player_actions(self, player: Player, rec_action : RecordedActions):
         for p in self.players:
@@ -29,7 +29,7 @@ class Board:
 
     def update_deck_knowledge(self, player: Player, card_pos: List[Tuple[Card,int]]):
         for card, pos in card_pos:
-            player.player_view.deck_knowledge[card] = pos
+            player.player_view.deck_knowledge[card] = pos 
 
     def update_card_drawn(self, num_drawn: int):
         for player in self.players:
@@ -82,3 +82,4 @@ class Board:
         # Deal initial hands
         for player in self.players:
             self._deal_starting_hand(player)
+            self._initialize_player_view(player)
