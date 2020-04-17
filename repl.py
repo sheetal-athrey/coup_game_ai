@@ -8,7 +8,8 @@ from board import Board
 from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple
-from utils import check_win, get_possible_challengers, prompt_user
+from utils import check_win, get_possible_challengers, prompt_user, process_counter
+from constants import RecordedActions
 
 
 def process_input(input_string: str, player: Player, board: Board):
@@ -137,6 +138,7 @@ def counter_action(player: Player, cPlayers: List[Player], action: str, counterC
                         return not (challenge(player, cPlayer, card, board))
                     elif i.lower() == 'n':
                         not_answered = False
+                        process_counter(cPlayer, card, board)
                         return False
                     else:
                         print("Please put in 'y' for yes or 'n' for no")
@@ -199,7 +201,9 @@ def process_action(action: int, player: Player, board: Board):
     if action == 0:
         # Income#
         player.bank += 1
+        board.update_player_actions(player, RecordedActions.Income)
         board.end_turn()
+
     if action == 1:
         action = "take Foreign Aid"
         possible_challengers = get_possible_challengers(board, player)
@@ -207,7 +211,13 @@ def process_action(action: int, player: Player, board: Board):
                                  board)
         if allowed:
             player.bank += 2
+            for p in board.players:
+                if not player:
+                    board.update_player_actions(p, RecordedActions.Fail_Block_Foreign)
+
+        board.update_player_actions(player, RecordedActions.Foreign_aid)
         board.end_turn()
+
     elif action == 2 and player.bank >= 7:
         # coup#
         possible_challengers = get_possible_challengers(board, player)
@@ -221,13 +231,16 @@ def process_action(action: int, player: Player, board: Board):
         if targeted_user.influence == 0:
             board.lost_influence.append(targeted_user)
             print("{} has lost influence".format(targeted_user.name))
+        board.update_player_actions(player, RecordedActions.Coup)
         board.end_turn()
+
     elif action == 3:
         action = "Tax"
         possible_challengers = get_possible_challengers(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Tax.value, board, True)
         if allowed:
             player.bank += 3
+        board.update_player_actions(player, RecordedActions.Tax)
         board.end_turn()
 
     elif action == 4:
@@ -237,12 +250,14 @@ def process_action(action: int, player: Player, board: Board):
                                  True)
         if (allowed and player.bank >= 3):
             player.bank -= 3
+           
             possible_targets = get_possible_challengers(board, player)
             targeted_user = targeting_players(possible_targets, player)
 
             assassin_allowed = counter_action(player, [targeted_user], action,
                                               constants.CounterActions.BlockAssassination.value, board)
             if assassin_allowed:
+                board.update_player_actions(targeted_user, RecordedActions.Fail_Block_Assassination)
                 if len(targeted_user.hand) > 0:
                     r_idx = random.randint(0, len(targeted_user.hand) - 1)
                     revealed_card = targeted_user.hand.pop(r_idx)
@@ -253,6 +268,8 @@ def process_action(action: int, player: Player, board: Board):
                     if not (targeted_user in board.lost_influence):
                         board.lost_influence.append(targeted_user)
                         print("{} has lost influence".format(targeted_user.name))
+
+        board.update_player_actions(player, RecordedActions.Assassinate)
         board.end_turn()
 
     elif action == 5:
@@ -266,10 +283,14 @@ def process_action(action: int, player: Player, board: Board):
                 steal_allowed = counter_action(player, [targeted_user], action,
                                                constants.CounterActions.BlockStealing.value, board)
                 if steal_allowed:
+                    board.update_player_actions(targeted_user, RecordedActions.Fail_Block_Steal)
                     targeted_user.bank -= 2
                     player.bank += 2
                     print("{} now has {} coins in bank".format(targeted_user.name, targeted_user.bank))
+
+        board.update_player_actions(player, RecordedActions.Steal)
         board.end_turn()
+
     elif action == 6:
         action = "Exchange"
         possible_challengers = get_possible_challengers(board, player)
@@ -298,6 +319,8 @@ def process_action(action: int, player: Player, board: Board):
             for i in range(player.influence):
                 selected_cards.append(possible_cards[parsed_cards[i]])
 
+            bottom_cards = []
+
             # Handle exchange transaction
             if len(selected_cards) == player.influence:
                 player.hand = selected_cards
@@ -306,7 +329,12 @@ def process_action(action: int, player: Player, board: Board):
                 for j in range(len(possible_cards)):
                     if j not in parsed_cards:
                         board.deck.add_bottom(possible_cards[j])
+                        bottom_cards.append((possible_cards[j],len(board.deck)))
             else:
                 for card in possible_cards[player.influence:]:
                     board.deck.add_bottom(card)
+                    bottom_cards.append((card,len(board.deck)))
+
+            board.update_deck_knowledge(player, bottom_cards)
+            board.update_player_actions(player, RecordedActions.Exchange)
             board.end_turn()
