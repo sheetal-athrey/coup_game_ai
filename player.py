@@ -7,7 +7,7 @@ class PlayerView:
     def __init__(self):
         self.num_player = 0  # type: int
         self.deck_knowledge = {}
-        self.player_claims = [] # TODO
+        self.player_claims = {} # TODO
         self.players = []  # type: List[Player]
         self.revealed = []  # type: List[Card]
         self.lost_influence = []  # type: List[Player]
