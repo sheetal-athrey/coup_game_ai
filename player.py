@@ -1,6 +1,6 @@
 from card import Card
-from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE, prompt_user
-from typing import List, Tuple
+from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE, prompt_user, CounterDecisions, CardType, clear_terminal, get_action_text, get_card_from_counter_decision
+from typing import List, Tuple, Optional
 
 
 class PlayerView:
@@ -50,8 +50,9 @@ class Player:
                 else:
                     input_provided = int(input_provided)
                     for action in ActionType:
-                        if input_provided == action.value and action.value <= 6:
+                        if input_provided == action.value[0] and action.value[0] <= 6:
                             return action
+                    print(" A valid action was not provided")
 
     # For ambassador
     # Returns list of cards selected.
@@ -70,17 +71,39 @@ class Player:
         parsed_cards = [int(i) for i in parsed_cards]
 
         selected_cards = []
-        for i in range(self.influence):
+        for i in range(number_required):
             selected_cards.append(possible_cards[parsed_cards[i]])
 
         return selected_cards
 
     # TODO need to combine these?
-    def counteract_opponent(self, action_taken: ActionType, opposing_player) -> bool:
-        pass
+    def make_counter_decision(self, action_taken: ActionType, acting_player: 'Player') -> CounterDecisions:
 
-    def challenge_opponent(self, action_taken: ActionType, opposing_player) -> bool:
-        pass
+        possible_counters = action_taken.value[1]
+        s = "{} is trying to {}. Please make a decision on what you would like to do to counter this.\n".format(
+                                            acting_player.name, get_action_text(action_taken))
+
+        for idx, counter in enumerate(possible_counters):
+            if counter == CounterDecisions.DoNothing:
+                s += " {} - Do Nothing\n".format(idx)
+            elif counter == CounterDecisions.Challenge:
+                s += " {} - Challenge - Deny the action\n".format(idx)
+            else:
+                s += " {} - Counteract - By claiming {}\n".format(idx, get_card_from_counter_decision(counter))
+
+        while True:
+            print("Notice for {}:\n".format(self.name) + s)
+            prompt_user()
+            i = input()
+            if not i.isnumeric():
+                print("Please put in a numeric value")
+            elif 0 <= int(i) <= len(possible_counters):
+                i = int(i)
+                clear_terminal()
+                return possible_counters[i]
+            else:
+                print("Please put in a value between 0 and {}".format(len(possible_counters-1)))
+
 
     def select_targeted_player(self, action_taken: ActionType, possible_targets: List['Player']) -> 'Player':
         s = "Notice for {}:\n Return in numeric value which player you would like to target.\n".format(self.name)

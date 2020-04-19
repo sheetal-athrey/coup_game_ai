@@ -50,13 +50,13 @@ def get_alive_opponents(board: Board, player: Player) -> List[Player]:
         possible_challengers.remove(i)
     return possible_challengers
 
+
 def process_counter(player: Player, counter_card: Card, board: Board):
     if counter_card.type == CardType.Ambassador:
-        board.update_player_actions(player, RecordedActions.Block_Steal)
+        board.update_player_actions(player, constants.RecordedActions.Block_Steal)
     elif counter_card.type == CardType.Captain:
-        board.update_player_actions(player, RecordedActions.Block_Steal)
+        board.update_player_actions(player, constants.RecordedActions.Block_Steal)
     elif counter_card.type == CardType.Duke:
-        board.update_player_actions(player, RecordedActions.Block_Foreign_Aid)
+        board.update_player_actions(player, constants.RecordedActions.Block_Foreign_Aid)
     elif counter_card.type == CardType.Contessa:
-        board.update_player_actions(player, RecordedActions.Block_Assassination)
-
+        board.update_player_actions(player, constants.RecordedActions.Block_Assassination)
