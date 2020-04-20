@@ -1,6 +1,7 @@
 from card import Card
-from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE, prompt_user, CounterDecisions, CardType, clear_terminal, get_action_text, get_card_from_counter_decision
+from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE, prompt_user, CounterDecisions, CardType, clear_terminal, get_action_text, get_card_from_counter_decision, RecordedActions
 from typing import List, Tuple, Optional
+import numpy as np
 
 
 class PlayerView:
@@ -11,6 +12,12 @@ class PlayerView:
         self.players = []  # type: List[Player]
         self.revealed = []  # type: List[Card]
         self.lost_influence = []  # type: List[Player]
+
+    #Returns a players x constants.RecordedActions matrix in the s
+    def convert_claims(self, players: List['Player']) -> List[List[int]]:
+        recorded_actions = [rec_action for rec_action in RecordedActions]
+        empty = np.zeros((len(players, len(recorded_actions))))
+        return empty
 
 
 class Player:
@@ -132,3 +139,39 @@ class RandomPlayer(Player):
             return ActionType.Coup
 
 
+class HeuristicPlayer(Player):
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.possible_cards = [card for card in CardType]
+
+    def select_action(self) -> ActionType:
+        #Basic Incorrect#
+        if self.bank >= 10:
+            return ActionType.Coup
+        return ActionType.Income
+
+    #For Ambassador
+    def select_cards(self, possible_cards: List[Card], number_required) -> List[Card]:
+        return possible_cards[:number_required]
+
+    #Ror every decision basically
+    def make_counter_decision(self, action_taken: ActionType, acting_player: 'Player') -> CounterDecisions:
+        return CounterDecisions.DoNothing
+
+    def select_targeted_player(self, action_taken: ActionType, possible_targets: List['Player']) -> 'Player':
+        """
+        Assumes action_taken in the set of (Coup, Assasinate, Steal)
+        """
+        if action_taken == ActionType.Steal:
+            #Steal from the rich, and give to yourself
+            p_targets = np.array([player.bank for player in possible_targets])
+            return possible_targets[np.argsort(p_targets)[0]]
+
+        else:
+            p_targets = np.array([player.influence for player in possible_targets])
+            if action_taken == ActionType.Coup:
+                #kill those with most influence 
+                return possible_targets[np.argsort(p_targets)[0]]
+            elif action_taken == ActionType.Assassinate:
+                #kill those with most influence 
+                return possible_targets[np.argsort(p_targets)[0]]

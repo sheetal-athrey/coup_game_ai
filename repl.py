@@ -3,7 +3,7 @@ import constants
 import random
 
 from deck import Deck
-from player import Player, RandomPlayer
+from player import Player, RandomPlayer, HeuristicPlayer
 from board import Board
 from deck import Deck
 from card import Card, CardType
@@ -44,7 +44,7 @@ def repl(board: Board):
         if p_turn.influence <= 0:
             board.end_turn()
         else:
-            if isinstance(p_turn, RandomPlayer):
+            if isinstance(p_turn, RandomPlayer) or isinstance(p_turn, HeuristicPlayer):
                 selected_action = p_turn.select_action()
                 process_action(selected_action, p_turn, board)
             else:
@@ -133,15 +133,18 @@ def challenge(player: Player, challenger: Player, claimedCard: CardType, board: 
 def process_action(action: constants.ActionType, player: Player, board: Board):
     if action == constants.ActionType.Income:
         # Income#
+        print("{} takes Income".format(player.name))
         player.bank += 1
         board.update_player_actions(player, RecordedActions.Income)
         board.end_turn()
 
     if action == constants.ActionType.Foreign_aid:
+        print("{} attempts to take ForeignAid".format(player.name))
         possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.CounterActions.BlockForeignAid.value,
                                  board)
         if allowed:
+            print("{} takes ForeignAid".format(player.name))
             player.bank += 2
             for p in board.players:
                 if not player:
@@ -154,6 +157,7 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
         # coup#
         alive_opponents = get_alive_opponents(board, player)
         targeted_user = player.select_targeted_player(constants.ActionType.Coup, alive_opponents)
+        print("{} coups {}".format(player.name, targeted_user.name))
         player.bank -= 7
 
         lose_card(targeted_user, board)
@@ -162,9 +166,11 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
         board.end_turn()
 
     elif action == constants.ActionType.Tax:
+        print("{} attempts to take Tax".format(player.name))
         possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Tax.value, board)
         if allowed:
+            print("{} takes Tax".format(player.name))
             player.bank += 3
         board.update_player_actions(player, RecordedActions.Tax)
         board.end_turn()
@@ -176,7 +182,10 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
 
         allowed = counter_action(player, [targeted_user], action, constants.ActionPowers.Assassinate.value, board)
 
+        print("{} attempts to take Assassinate {}".format(player.name, targeted_user.name))
+
         if allowed and targeted_user.influence > 0:
+            print("{} Assassinates {}".format(player.name, targeted_user.name))
             player.bank -= 3
 
             assassin_allowed = counter_action(player, [targeted_user], action,
@@ -201,8 +210,7 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
 
         alive_opponents = get_alive_opponents(board, player)
         targeted_user = player.select_targeted_player(constants.ActionType.Steal, alive_opponents)
-        print("attempting steal by {} from {}".format(player.name, targeted_user.name
-                                                      ))
+        print("attempting steal by {} from {}".format(player.name, targeted_user.name))
         allowed = counter_action(player, [targeted_user], action, constants.ActionPowers.Steal.value, board)
 
         if allowed:
@@ -212,7 +220,7 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
                                                constants.CounterActions.BlockStealing.value, board)
                 if steal_allowed:
                     board.update_player_actions(targeted_user, RecordedActions.Fail_Block_Steal)
-
+                    print("{} Steals from {}".format(player.name, targeted_user.name))
                     # TODO this might not be two coins?
                     targeted_user.bank -= 2
                     player.bank += 2
@@ -222,11 +230,13 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
         board.end_turn()
 
     elif action == constants.ActionType.Exchange:
+        print("{} attempts to exchange with the court deck".format(player.name))
 
         possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Exchange.value, board)
 
         if allowed:
+            print("{} exchanges with the court deck".format(player.name))
             # Force player to select from cards in their hand and two random cards drawn from the deck.
             new_cards = board.deck.draw_cards(constants.NUM_EXCHANGE)
             possible_cards = player.hand + new_cards  # type: List[Card]

@@ -122,7 +122,9 @@ def get_action_text(action: ActionType) -> str:
         return "block Assassination"
     elif action == ActionType.Block_Foreign_Aid:
         return "block Foreign Aid"
-    elif action == ActionType.Block_Steal:
+    elif action == ActionType.Block_Steal_Ambassador:
+        return "block Stealing"
+    elif action == ActionType.Block_Steal_Captain:
         return "block Stealing"
 
 
