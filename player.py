@@ -13,10 +13,16 @@ class PlayerView:
         self.revealed = []  # type: List[Card]
         self.lost_influence = []  # type: List[Player]
 
-    #Returns a players x constants.RecordedActions matrix in the s
+    #Returns a constants.RecordedActions x players matrix in the s
     def convert_claims(self, players: List['Player']) -> List[List[int]]:
         recorded_actions = [rec_action for rec_action in RecordedActions]
-        empty = np.zeros((len(players, len(recorded_actions))))
+        empty = np.zeros((len(recorded_actions),len(players)))
+        for i in range(len(recorded_actions)):
+            ra = recorded_actions[i]
+            for j in range(len(players)):
+                p = players[j]
+                empty[i,j] = self.player_claims[p][ra]
+
         return empty
 
 
@@ -163,15 +169,34 @@ class HeuristicPlayer(Player):
         Assumes action_taken in the set of (Coup, Assasinate, Steal)
         """
         if action_taken == ActionType.Steal:
-            #Steal from the rich, and give to yourself
+            #Steal from the rich, and give to yourself - Safest move
             p_targets = np.array([player.bank for player in possible_targets])
             return possible_targets[np.argsort(p_targets)[0]]
 
         else:
             p_targets = np.array([player.influence for player in possible_targets])
-            if action_taken == ActionType.Coup:
-                #kill those with most influence 
-                return possible_targets[np.argsort(p_targets)[0]]
-            elif action_taken == ActionType.Assassinate:
-                #kill those with most influence 
-                return possible_targets[np.argsort(p_targets)[0]]
+            ca_win = .8
+            d_win = .5
+            as_win = .4
+            co_win = .3
+            am_win = .5
+            not_d_win = (ca_win + as_win + co_win + am_win)/4
+            not_block_steal = (as_win + co_win + d_win)/3
+            not_block_as = (ca_win + d_win + co_win + am_win)/4
+            block_steal = (ca_win + am_win)/2
+
+            #Income, Foreign_aid, Coup, Tax, Assassinate, Steal, Exchange, Block_Foreign_Aid, Block_Steal, Block_Assassination, Fail_Block_Foreign, Fail_Block_Steal, Fail_Block_Assassination
+            action_weights = np.array([.25 * not_d_win, 0, 0, d_win, as_win, ca_win , am_win, d_win, block_steal, co_win, not_d_win, not_block_steal, not_block_as])
+
+            if action_taken == ActionType.Assassinate:
+                action_weights[9] = action_weights[9] * -2
+                action_weights[12] = action_weights[12] * 2
+ 
+            action_weights = action_weights.reshape(1,len(action_weights))
+            influence = np.array([p.influence for p in possible_targets]).reshape(len(possible_targets),1) # p -> #players
+
+            p_weights = np.dot(influence, action_weights) #(px1) dot (1x10)
+            opp_claims = self.player_view.convert_claims(possible_targets) #(10xp)
+            threat_level = np.dot(p_weights, opp_claims).diagonal() # ((px10) dot (10xp)).diagonal -> (1xp)
+
+            return possible_targets[np.argmax(threat_level)]
