@@ -41,6 +41,8 @@ def repl(board: Board):
     game_over, winner = check_win(board.players)
     while not game_over:
         p_turn = board.players[board.turn]
+        print("Current Turn: ", p_turn.name)
+        print("Player's still alive ", [p.name for p in board.players if p.influence > 0])
         if p_turn.influence <= 0:
             board.end_turn()
         else:
@@ -181,27 +183,22 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
 
         allowed = counter_action(player, [targeted_user], action, constants.ActionPowers.Assassinate.value, board)
 
-        print("{} attempts to take Assassinate {}".format(player.name, targeted_user.name))
+        print("{} attempts to Assassinate {}".format(player.name, targeted_user.name))
 
         if allowed and targeted_user.influence > 0:
             print("{} Assassinates {}".format(player.name, targeted_user.name))
             player.bank -= 3
-
-            assassin_allowed = counter_action(player, [targeted_user], action,
-                                              constants.CounterActions.BlockAssassination.value, board)
-            if assassin_allowed:
-                board.update_player_actions(targeted_user, RecordedActions.Fail_Block_Assassination)
-                if len(targeted_user.hand) > 0:
-                    r_idx = random.randint(0, len(targeted_user.hand) - 1)
-                    revealed_card = targeted_user.hand.pop(r_idx)
-                    targeted_user.influence -= 1
-                    print("{} has been revealed".format(revealed_card.type))
-                board.revealed.append(revealed_card)
-                if targeted_user.influence == 0:
-                    if not (targeted_user in board.lost_influence):
-                        board.lost_influence.append(targeted_user)
-                        print("{} has lost influence".format(targeted_user.name))
-
+            board.update_player_actions(targeted_user, RecordedActions.Fail_Block_Assassination)
+            if len(targeted_user.hand) > 0:
+                r_idx = random.randint(0, len(targeted_user.hand) - 1)
+                revealed_card = targeted_user.hand.pop(r_idx)
+                targeted_user.influence -= 1
+                print("{} has been revealed".format(revealed_card.type))
+            board.revealed.append(revealed_card)
+            if targeted_user.influence == 0:
+                if not (targeted_user in board.lost_influence):
+                    board.lost_influence.append(targeted_user)
+                    print("{} has lost influence".format(targeted_user.name))
         board.update_player_actions(player, RecordedActions.Assassinate)
         board.end_turn()
 
@@ -213,18 +210,13 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
         allowed = counter_action(player, [targeted_user], action, constants.ActionPowers.Steal.value, board)
 
         if allowed:
-            if targeted_user in board.players:
-
-                steal_allowed = counter_action(player, [targeted_user], action,
-                                               constants.CounterActions.BlockStealing.value, board)
-                if steal_allowed:
-                    board.update_player_actions(targeted_user, RecordedActions.Fail_Block_Steal)
-                    print("{} Steals from {}".format(player.name, targeted_user.name))
-                    # TODO this might not be two coins?
-                    targeted_user.bank -= 2
-                    player.bank += 2
-                    print("{} now has {} coins in bank".format(targeted_user.name, targeted_user.bank))
-
+            board.update_player_actions(targeted_user, RecordedActions.Fail_Block_Steal)
+            print("{} Steals from {}".format(player.name, targeted_user.name))
+            # TODO this might not be two coins?
+            steal_amt = min(2, targeted_user.bank)
+            player.bank += steal_amt
+            targeted_user.bank -= steal_amt
+            print("{} now has {} coins in bank".format(targeted_user.name, targeted_user.bank))
         board.update_player_actions(player, RecordedActions.Steal)
         board.end_turn()
 
