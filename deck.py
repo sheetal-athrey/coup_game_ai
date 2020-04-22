@@ -25,3 +25,6 @@ class Deck():
     
     def add_bottom(self, card: Card): # TODO
         self.cards.append(card)
+
+    def size(self):
+        return len(self.cards)

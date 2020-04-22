@@ -1,7 +1,7 @@
 import sys
 import constants
 import random
-from player import Player, HeuristicPlayer
+from player import Player, HeuristicPlayer, RandomPlayer
 from board import Board
 from deck import Deck
 from card import Card, CardType
@@ -32,7 +32,7 @@ if __name__ == '__main__':
         # i = input()
         # player_list.append(Player(i))
         # print()
-        player_list.append(HeuristicPlayer("Player {}".format(x+1)))
+        player_list.append(RandomPlayer("Player {}".format(x+1)))
 
     # Instantiate Board
     d = []

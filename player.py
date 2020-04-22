@@ -2,6 +2,7 @@ from card import Card
 from constants import ActionType, STARTING_MONEY, STARTING_INFLUENCE, prompt_user, CounterDecisions, CardType, clear_terminal, get_action_text, get_card_from_counter_decision, RecordedActions
 from typing import List, Tuple, Optional
 import numpy as np
+import random
 
 
 class PlayerView:
@@ -135,8 +136,30 @@ class RandomPlayer(Player):
         super().__init__(name)
 
     def select_action(self) -> ActionType:
+        possible_actions = [e for e in ActionType if e.value[0]<7]
         if self.bank >= 10:
             return ActionType.Coup
+        else:
+            if self.bank < 7:
+                possible_actions.remove(ActionType.Coup)
+                if self.bank < 3:
+                    possible_actions.remove(ActionType.Assassinate)
+        return random.choice(possible_actions)
+    
+
+    def select_cards(self, possible_cards: List[Card], number_required) -> List[Card]:
+        return random.choices(possible_cards, k=2)
+
+
+    # TODO need to combine these?
+    def make_counter_decision(self, action_taken: ActionType, acting_player: 'Player') -> CounterDecisions:
+        print(action_taken)
+        possible_counters = action_taken.value[1]
+        return random.choice(possible_counters)
+
+
+    def select_targeted_player(self, action_taken: ActionType, possible_targets: List['Player']) -> 'Player':
+        return random.choice(possible_targets)
 
 
 class HeuristicPlayer(Player):
