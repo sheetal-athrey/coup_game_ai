@@ -23,7 +23,34 @@ class PlayerView:
                 p = players[j]
                 empty[i,j] = self.player_claims[p][ra]
 
+        print(empty.shape)
         return empty
+
+    def claimed_cards(self, players: List['Player']) -> List[List[int]]:
+        card_types = [typ for typ in CardType]
+        claim_conversion = { #Ambassador(0), Assassin(1), Contessa(2), Captain(3), Duke(4) -> With respect to card types
+            0 : [(4, -.25)],
+            1 : [(4, -.25)],
+            2 : [(0,0)],
+            3 : [(4, 1)],
+            4 : [(1, 1)],
+            5 : [(3, 1)],
+            6 : [(0, 1)],
+            7 : [(4, 1)],
+            8 : [(0, 1), (3, 1)],
+            9 : [(2, 1)],
+            10 : [(4, -.5)],
+            11 : [(0, -1), (3, -1)],
+            12 : [(2, -1.5)]
+        }
+        claims = self.convert_claims(players)
+        card_claims = np.zeros((len(players), len(card_types)))
+        for i in range(len(claims[0])): #p
+            for j in range(len(claims)): #13 
+                for pos, weight in claim_conversion[j]:
+                    card_claims[i, pos] += weight * claims[j, i]
+        
+        return card_claims #p x cards
 
 
 class Player:
@@ -158,7 +185,16 @@ class HeuristicPlayer(Player):
 
     #For Ambassador
     def select_cards(self, possible_cards: List[Card], number_required) -> List[Card]:
-        return possible_cards[:number_required]
+        if number_required == 2:
+            opponents = list(filter(lambda p : p.influence > 0 and p != self, self.player_view.players))
+            opponent_claim_cards = self.player_view.claimed_cards(opponents)
+            return possible_cards[:number_required]
+        elif number_required == 1:
+            types = [card.type for card in possible_cards]
+            if CardType.Captain in types:
+                return [possible_cards[types.index(CardType.Captain)]]
+            else: 
+                return [possible_cards[types.index(CardType.Ambassador)]]
 
     #Ror every decision basically
     def make_counter_decision(self, action_taken: ActionType, acting_player: 'Player') -> CounterDecisions:
