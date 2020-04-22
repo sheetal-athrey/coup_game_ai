@@ -59,7 +59,7 @@ def repl(board: Board):
                 process_input(i, p_turn, board)
 
             # End of action
-            game_over, winner = check_win(board.players)
+        game_over, winner = check_win(board.players)
 
     print("{} has won the game!".format(winner))
 
@@ -176,7 +176,6 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
         board.end_turn()
 
     elif action == constants.ActionType.Assassinate and player.bank >= 3:
-        action = "Assassinate"
         alive_opponents = get_alive_opponents(board, player)
         targeted_user = player.select_targeted_player(constants.ActionType.Assassinate, alive_opponents)
 
@@ -251,7 +250,7 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
             for card in possible_cards:
                 if card not in player.hand:
                     board.deck.add_bottom(card)
-                    bottom_cards.append((card, len(board.deck)))
+                    bottom_cards.append((card, board.deck.size()))
 
             board.update_deck_knowledge(player, bottom_cards)
             board.update_player_actions(player, RecordedActions.Exchange)
