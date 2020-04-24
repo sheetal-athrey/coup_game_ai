@@ -10,6 +10,8 @@ from typing import List, Tuple
 from utils import check_win
 from constants import prompt_user
 
+import time
+
 # Disable
 def blockPrint():
     sys.stdout = open(os.devnull, 'w')
@@ -37,23 +39,38 @@ if __name__ == '__main__':
     else:
         blockPrint()
 
-    # Instantiate Players
-    player_list = []
-    for x in range(num_players):
-        # print("What is your name p{}?".format(x+1))
-        # prompt_user()
-        # i = input()
-        # player_list.append(Player(i))
-        # print()
-        player_list.append(RandomPlayer("Player {}".format(x+1)))
+    now = time.time()
+    with open("Trevor3.txt", "w+") as f:
+        wins = [0,0]
+        for x in range(10000):
+            # Instantiate Players
+            p1 = HeuristicPlayer("P1")
+            p2 = RandomPlayer("P2")
+            player_list = [p1, p2]
+            # for x in range(num_players):
+            #     # print("What is your name p{}?".format(x+1))
+            #     # prompt_user()
+            #     # i = input()
+            #     # player_list.append(Player(i))
+            #     # print()
+            #     player_list.append(HeuristicPlayer("Player {}".format(x+1)))
 
-    # Instantiate Board
-    d = []
-    for t in CardType:
-        for _ in range(constants.NUM_COPIES):
-            d.append(Card(t))
+            # Instantiate Board
+            d = []
+            for t in CardType:
+                for _ in range(constants.NUM_COPIES):
+                    d.append(Card(t))
 
-    deck = Deck(d)
-    board = Board(player_list, deck)
-    repl(board)
+            deck = Deck(d)
+            board = Board(player_list, deck)
+            winner = repl(board)
+
+            if winner == p1:
+                wins[0] +=1
+            else:
+                wins[1] +=1
+        f.write(str(wins))
+        f.write("Total Runtime : {}".format(time.time()-now))
+
+
 

@@ -52,6 +52,26 @@ class PlayerView:
                     card_claims[i, pos] += weight * claims[j, i]
         
         return card_claims #p x cards
+    
+    def can_FA(self, players: List['Player']) -> bool:
+        for p in players:
+           if self.player_claims[p][RecordedActions.Block_Foreign_Aid] > 1:
+               return False
+        return True
+
+    def can_Steal(self, players: List['Player']) -> List['Player']:
+        can = players.copy()
+        for p in players:
+           if self.player_claims[p][RecordedActions.Block_Steal] > 1:
+               can.remove(p)
+        return can
+    
+    def can_Assassinate(self, players: List['Players']) -> List['Player']:
+        can = players.copy()
+        for p in players:
+           if self.player_claims[p][RecordedActions.Block_Assassination] > 1:
+               can.remove(p)
+        return can
 
 
 class Player:
@@ -199,29 +219,156 @@ class HeuristicPlayer(Player):
     def __init__(self, name: str):
         super().__init__(name)
         self.possible_cards = [card for card in CardType]
+        self.card_confidence = {
+            CardType.Captain : .8,
+            CardType.Duke : .5,
+            CardType.Assassin : .4,
+            CardType.Contessa : .3,
+            CardType.Ambassador : .5,
+        }
 
     def select_action(self) -> ActionType:
         #Basic Incorrect#
-        if self.bank >= 10:
+        if self.bank >= 7:
             return ActionType.Coup
+        card_types = [card for card in CardType]
+        opp_think = self.player_view.claimed_cards([self])
+
+        thought_types = []
+        if np.allclose(opp_think[0], np.zeros(len(opp_think[0]))): 
+            return ActionType.Tax
+        else: 
+            for c_idx in np.argsort(opp_think[0])[:self.influence]:
+                thought_types.append(card_types[c_idx])
+        
+        thought_types = set(thought_types)
+        hand_types = [card.type for card in self.hand]
+
+        opponents = list(filter(lambda p : p.influence > 0, self.player_view.players))
+        can_steal = len(self.player_view.can_Steal(opponents)) > 0
+        can_assassinate = len(self.player_view.can_Assassinate(opponents)) > 0
+        can_fa = self.player_view.can_FA(opponents)
+        
+        if self.influence == 1:
+            if CardType.Assassin in hand_types and self.bank >= 3 and can_assassinate:
+                return ActionType.Assassinate
+            elif (not CardType.Captain in hand_types):
+                return ActionType.Exchange
+            elif can_steal:
+                return ActionType.Steal
+            elif CardType.Duke in hand_types:
+                return ActionType.Tax
+        else: 
+            if CardType.Assassin in thought_types and self.bank >= 3 and can_assassinate:
+                return ActionType.Assassinate
+            elif len(thought_types.intersection(set(hand_types))) == len(self.hand):
+                return ActionType.Exchange
+            elif CardType.Captain in thought_types and can_steal :
+                return ActionType.Steal
+            elif CardType.Duke in thought_types:
+                return ActionType.Tax
+            
+        if can_fa:
+            return ActionType.Foreign_aid   
         return ActionType.Income
 
     #For Ambassador
     def select_cards(self, possible_cards: List[Card], number_required) -> List[Card]:
+        choice_types = [card.type for card in possible_cards]
+        card_types = [typ for typ in CardType]
         if number_required == 2:
             opponents = list(filter(lambda p : p.influence > 0 and p != self, self.player_view.players))
-            opponent_claim_cards = self.player_view.claimed_cards(opponents)
-            return possible_cards[:number_required]
+            opponent_claim_cards = self.player_view.claimed_cards(opponents) # p x c
+            total_claims = np.sum(opponent_claim_cards, axis = 0)
+            most_rel_opp_cards = np.argsort(total_claims)[::-1]
+            wanted_cards = []
+            for rel_card_idx in most_rel_opp_cards:
+                if card_types[rel_card_idx] == CardType.Ambassador:
+                    wanted = CardType.Ambassador
+                elif card_types[rel_card_idx] == CardType.Assassin:
+                    wanted = CardType.Contessa
+                elif card_types[rel_card_idx] == CardType.Captain:
+                    wanted = CardType.Captain
+                elif card_types[rel_card_idx] == CardType.Contessa:
+                    wanted = CardType.Duke
+                elif card_types[rel_card_idx] == CardType.Duke:
+                    wanted = CardType.Assassin
+
+                wanted_cards.append(possible_cards[choice_types.index(wanted)]) if wanted in choice_types else 1
+
+                if len(wanted_cards) == number_required:
+                    return wanted_cards
+                    
         elif number_required == 1:
-            types = [card.type for card in possible_cards]
-            if CardType.Captain in types:
-                return [possible_cards[types.index(CardType.Captain)]]
-            else: 
-                return [possible_cards[types.index(CardType.Ambassador)]]
+            if CardType.Captain in choice_types:
+                return [possible_cards[choice_types.index(CardType.Captain)]]
+            elif CardType.Ambassador in choice_types:
+                return [possible_cards[choice_types.index(CardType.Ambassador)]]
+            elif CardType.Duke in choice_types:
+                return [possible_cards[choice_types.index(CardType.Duke)]]
+            elif CardType.Ambassador in choice_types:
+                return [possible_cards[choice_types.index(CardType.Ambassador)]]
+            elif CardType.Assassin in choice_types:
+                return [possible_cards[choice_types.index(CardType.Assassin)]]
+            elif CardType.Contessa in choice_types:
+                return [possible_cards[choice_types.index(CardType.Contessa)]]
 
     #Ror every decision basically
     def make_counter_decision(self, action_taken: ActionType, acting_player: 'Player') -> CounterDecisions:
-        return CounterDecisions.DoNothing
+        #defining helpful info
+        card_types = [typ for typ in CardType]
+        action_to_card_idx = {
+            ActionType.Foreign_aid : [4], 
+            ActionType.Tax : [4] ,
+            ActionType.Assassinate : [1],
+            ActionType.Steal : [0,2], 
+            ActionType.Exchange : [0],
+            ActionType.Block_Foreign_Aid : [4],
+            ActionType.Block_Steal_Ambassador : [0],
+            ActionType.Block_Steal_Captain : [2], 
+            ActionType.Block_Assassination : [3],
+        }
+
+        #create one-hot representation of choices
+        all_counters = [counter for counter in CounterDecisions]
+        possible_counters = action_taken.value[1]
+        one_hot_p_counters = [1 if counter in possible_counters else 0 for counter in all_counters]
+
+        #Set base confidence threshold that must be exceeded to anything but nothing.
+        if self.influence == 2:
+            threshold = .5
+        else:
+            threshold = 1 - self.card_confidence[self.hand[0].type]
+
+        #Define base weights based off of what the opponent thinks of us
+        opp_thinks = self.player_view.claimed_cards([self])
+        opp_cards = self.player_view.claimed_cards([acting_player])
+        if action_taken == ActionType.Steal:
+            challenge = (opp_cards[0][0] + opp_cards[0][2])/2
+        else:
+            challenge = opp_cards[0][action_to_card_idx[action_taken]]
+        weights = [threshold, challenge, opp_thinks[0][4], opp_thinks[0][2], opp_thinks[0][1], opp_thinks[0][3]]
+
+        #finally factor in all known cards -> to opponents the cards you know in the deck are
+        #indistinguishable from the ones in your hand (with minor exceptions but who needs to think bout that)
+        known_cards = self.hand
+        known_cards.extend(self.player_view.deck_knowledge.keys())
+        for card in known_cards:
+            c_idx = card_types.index(card.type)
+            if card.type == CardType.Ambassador:
+                weights[4] += .33
+            elif card.type == CardType.Captain:
+                weights[5] += .33
+            elif card.type == CardType.Contessa:
+                weights[3] += .33
+            elif card.type == CardType.Duke:
+                weights[2] += .33 
+            
+            if c_idx in action_to_card_idx[action_taken]:
+                weights[1] += .167
+        
+        decision_scores = np.multiply(one_hot_p_counters, weights)
+        return all_counters[np.argmax(decision_scores)]
 
     def select_targeted_player(self, action_taken: ActionType, possible_targets: List['Player']) -> 'Player':
         """
@@ -229,6 +376,7 @@ class HeuristicPlayer(Player):
         """
         if action_taken == ActionType.Steal:
             #Steal from the rich, and give to yourself - Safest move
+            possible_targets = self.player_view.can_Steal(possible_targets)
             p_targets = np.array([player.bank for player in possible_targets])
             return possible_targets[np.argsort(p_targets)[0]]
 

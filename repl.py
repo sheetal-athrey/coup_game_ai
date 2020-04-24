@@ -33,7 +33,7 @@ def process_input(input_string: str, player: Player, board: Board):
     print()
 
 
-def repl(board: Board):
+def repl(board: Board) -> Player:
     """
     players - Players list - A list of player objects that represent the players.
     board - Board - a fresh board to start the game
@@ -62,7 +62,7 @@ def repl(board: Board):
 
             # End of action
         game_over, winner = check_win(board.players)
-
+    return winner
     print("{} has won the game!".format(winner))
 
 

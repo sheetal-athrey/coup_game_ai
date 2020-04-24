@@ -21,7 +21,7 @@ def lose_card(affected_player: Player, board: Board):
         print("{} has lost influence".format(affected_player.name))
 
 
-def check_win(players: List[Player]) -> Tuple[bool, str]:
+def check_win(players: List[Player]) -> Tuple[bool, Player]:
     """
     Returns a tuple representing the game is over and who the winner is.
 
@@ -39,8 +39,8 @@ def check_win(players: List[Player]) -> Tuple[bool, str]:
     if total_players == 1:
         for player in players:
             if player.influence >0:
-                return True, player.name
-    return False, ""
+                return True, player
+    return False, None
 
 
 def get_alive_opponents(board: Board, player: Player) -> List[Player]:
