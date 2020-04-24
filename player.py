@@ -280,7 +280,11 @@ class HeuristicPlayer(Player):
             opponents = list(filter(lambda p : p.influence > 0 and p != self, self.player_view.players))
             opponent_claim_cards = self.player_view.claimed_cards(opponents) # p x c
             total_claims = np.sum(opponent_claim_cards, axis = 0)
+<<<<<<< HEAD
             most_rel_opp_cards = np.argsort(total_claims)[::-1]
+=======
+            most_rel_opp_cards = np.argsort(total_claims, reversed = True)
+>>>>>>> b28c57f958d00dc2ada00ccbc61d259d713f9942
             wanted_cards = []
             for rel_card_idx in most_rel_opp_cards:
                 if card_types[rel_card_idx] == CardType.Ambassador:
@@ -302,6 +306,7 @@ class HeuristicPlayer(Player):
         elif number_required == 1:
             if CardType.Captain in choice_types:
                 return [possible_cards[choice_types.index(CardType.Captain)]]
+<<<<<<< HEAD
             elif CardType.Ambassador in choice_types:
                 return [possible_cards[choice_types.index(CardType.Ambassador)]]
             elif CardType.Duke in choice_types:
@@ -312,13 +317,20 @@ class HeuristicPlayer(Player):
                 return [possible_cards[choice_types.index(CardType.Assassin)]]
             elif CardType.Contessa in choice_types:
                 return [possible_cards[choice_types.index(CardType.Contessa)]]
+=======
+            else: 
+                return [possible_cards[choice_types.index(CardType.Ambassador)]]
+>>>>>>> b28c57f958d00dc2ada00ccbc61d259d713f9942
 
     #Ror every decision basically
     def make_counter_decision(self, action_taken: ActionType, acting_player: 'Player') -> CounterDecisions:
         #defining helpful info
         card_types = [typ for typ in CardType]
         action_to_card_idx = {
+<<<<<<< HEAD
             ActionType.Foreign_aid : [4], 
+=======
+>>>>>>> b28c57f958d00dc2ada00ccbc61d259d713f9942
             ActionType.Tax : [4] ,
             ActionType.Assassinate : [1],
             ActionType.Steal : [0,2], 
@@ -341,12 +353,20 @@ class HeuristicPlayer(Player):
             threshold = 1 - self.card_confidence[self.hand[0].type]
 
         #Define base weights based off of what the opponent thinks of us
+<<<<<<< HEAD
         opp_thinks = self.player_view.claimed_cards([self])
         opp_cards = self.player_view.claimed_cards([acting_player])
         if action_taken == ActionType.Steal:
             challenge = (opp_cards[0][0] + opp_cards[0][2])/2
         else:
             challenge = opp_cards[0][action_to_card_idx[action_taken]]
+=======
+        opp_thinks = self.player_view.claimed_cards(self)
+        if action_taken == ActionType.Steal:
+            challenge = (opp_thinks[0][0] + opp_thinks[0][2])/2
+        else:
+            challenge = opp_thinks[0][action_to_card_idx[action_taken]]
+>>>>>>> b28c57f958d00dc2ada00ccbc61d259d713f9942
         weights = [threshold, challenge, opp_thinks[0][4], opp_thinks[0][2], opp_thinks[0][1], opp_thinks[0][3]]
 
         #finally factor in all known cards -> to opponents the cards you know in the deck are
