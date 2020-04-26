@@ -24,7 +24,6 @@ class PlayerView:
                 p = players[j]
                 empty[i,j] = self.player_claims[p][ra]
 
-        print(empty.shape)
         return empty
 
     def claimed_cards(self, players: List['Player']) -> List[List[int]]:
@@ -183,6 +182,7 @@ class Player:
             else:
                 print("Please put in a value between 0 and {}".format(len(possible_targets)))
 
+        
 
 class RandomPlayer(Player):
     def __init__(self, name: str):
@@ -208,11 +208,34 @@ class RandomPlayer(Player):
     def make_counter_decision(self, action_taken: ActionType, acting_player: 'Player') -> CounterDecisions:
         print(action_taken)
         possible_counters = action_taken.value[1]
-        return random.choice(possible_counters)
+        chosen = random.choice(possible_counters)
+        print(chosen)
+        return chosen
 
 
     def select_targeted_player(self, action_taken: ActionType, possible_targets: List['Player']) -> 'Player':
         return random.choice(possible_targets)
+
+
+class TruthPlayer(RandomPlayer):
+    def select_action(self) -> ActionType:
+        associations = {
+            CardType.Ambassador : ActionType.Exchange,
+            CardType.Captain : ActionType.Steal,
+            CardType.Duke : ActionType.Tax
+        }
+        if self.bank >= 10:
+            return ActionType.Coup
+        possible_actions = [ActionType.Income, ActionType.Foreign_aid]
+        if self.bank >= 7:
+            possible_actions.append(ActionType.Coup)
+        hand_types = [c.type for c in self.hand]
+        if self.bank >= 3 and CardType.Assassin in hand_types:
+            possible_actions.append(ActionType.Assassinate)
+        for t in hand_types:
+            if t in associations:
+                possible_actions.append(associations[t])
+        return random.choice(possible_actions)
 
 
 class HeuristicPlayer(Player):
@@ -235,10 +258,12 @@ class HeuristicPlayer(Player):
         opp_think = self.player_view.claimed_cards([self])
 
         thought_types = []
-        if np.allclose(opp_think[0], np.zeros(len(opp_think[0]))): 
-            return ActionType.Tax
-        else: 
-            for c_idx in np.argsort(opp_think[0])[:self.influence]:
+        print("opp thinks I am: {}".format(opp_think[0]))
+        # if np.allclose(opp_think[0], np.zeros(len(opp_think[0]))): 
+        #     return ActionType.Foreign_aid
+        # else: 
+        for c_idx in (np.argsort(opp_think[0])[::-1])[:self.influence]:
+            if opp_think[0][c_idx] != 0:
                 thought_types.append(card_types[c_idx])
         
         thought_types = set(thought_types)
@@ -252,12 +277,12 @@ class HeuristicPlayer(Player):
         if self.influence == 1:
             if CardType.Assassin in hand_types and self.bank >= 3 and can_assassinate:
                 return ActionType.Assassinate
+            elif CardType.Duke in hand_types:
+                return ActionType.Tax
             elif (not CardType.Captain in hand_types):
                 return ActionType.Exchange
             elif can_steal:
                 return ActionType.Steal
-            elif CardType.Duke in hand_types:
-                return ActionType.Tax
         else: 
             if CardType.Assassin in thought_types and self.bank >= 3 and can_assassinate:
                 return ActionType.Assassinate
@@ -280,11 +305,7 @@ class HeuristicPlayer(Player):
             opponents = list(filter(lambda p : p.influence > 0 and p != self, self.player_view.players))
             opponent_claim_cards = self.player_view.claimed_cards(opponents) # p x c
             total_claims = np.sum(opponent_claim_cards, axis = 0)
-<<<<<<< HEAD
             most_rel_opp_cards = np.argsort(total_claims)[::-1]
-=======
-            most_rel_opp_cards = np.argsort(total_claims, reversed = True)
->>>>>>> b28c57f958d00dc2ada00ccbc61d259d713f9942
             wanted_cards = []
             for rel_card_idx in most_rel_opp_cards:
                 if card_types[rel_card_idx] == CardType.Ambassador:
@@ -306,7 +327,6 @@ class HeuristicPlayer(Player):
         elif number_required == 1:
             if CardType.Captain in choice_types:
                 return [possible_cards[choice_types.index(CardType.Captain)]]
-<<<<<<< HEAD
             elif CardType.Ambassador in choice_types:
                 return [possible_cards[choice_types.index(CardType.Ambassador)]]
             elif CardType.Duke in choice_types:
@@ -317,20 +337,13 @@ class HeuristicPlayer(Player):
                 return [possible_cards[choice_types.index(CardType.Assassin)]]
             elif CardType.Contessa in choice_types:
                 return [possible_cards[choice_types.index(CardType.Contessa)]]
-=======
-            else: 
-                return [possible_cards[choice_types.index(CardType.Ambassador)]]
->>>>>>> b28c57f958d00dc2ada00ccbc61d259d713f9942
 
     #Ror every decision basically
     def make_counter_decision(self, action_taken: ActionType, acting_player: 'Player') -> CounterDecisions:
         #defining helpful info
         card_types = [typ for typ in CardType]
         action_to_card_idx = {
-<<<<<<< HEAD
             ActionType.Foreign_aid : [4], 
-=======
->>>>>>> b28c57f958d00dc2ada00ccbc61d259d713f9942
             ActionType.Tax : [4] ,
             ActionType.Assassinate : [1],
             ActionType.Steal : [0,2], 
@@ -350,44 +363,56 @@ class HeuristicPlayer(Player):
         if self.influence == 2:
             threshold = .5
         else:
-            threshold = 1 - self.card_confidence[self.hand[0].type]
+            threshold = self.card_confidence[self.hand[0].type]
 
         #Define base weights based off of what the opponent thinks of us
-<<<<<<< HEAD
-        opp_thinks = self.player_view.claimed_cards([self])
+        opp_thinks = []
+        card_types = [t for t in CardType]
+        opp_view = self.player_view.claimed_cards([self])[0]
+        for x in (np.argsort(opp_view)[::-1])[:2]:
+            if opp_view[x] > 0:
+                opp_thinks.append(card_types[x])
+
         opp_cards = self.player_view.claimed_cards([acting_player])
         if action_taken == ActionType.Steal:
             challenge = (opp_cards[0][0] + opp_cards[0][2])/2
         else:
-            challenge = opp_cards[0][action_to_card_idx[action_taken]]
-=======
-        opp_thinks = self.player_view.claimed_cards(self)
-        if action_taken == ActionType.Steal:
-            challenge = (opp_thinks[0][0] + opp_thinks[0][2])/2
-        else:
-            challenge = opp_thinks[0][action_to_card_idx[action_taken]]
->>>>>>> b28c57f958d00dc2ada00ccbc61d259d713f9942
-        weights = [threshold, challenge, opp_thinks[0][4], opp_thinks[0][2], opp_thinks[0][1], opp_thinks[0][3]]
+            challenge = opp_cards[0][action_to_card_idx[action_taken][0]]
+            s = np.sum(opp_cards)
+            if s < 0: 
+                challenge = .5 + opp_cards[0][action_to_card_idx[action_taken][0]] / s
+            elif s > 0:
+                challenge = .5 - opp_cards[0][action_to_card_idx[action_taken][0]] / s #challenge/sum = % of claim associated with that card
+            else: 
+                challenge = 0
+        opp_thinks_duke = 1 if CardType.Duke in opp_thinks else 0
+        opp_thinks_cont = 1 if CardType.Contessa in opp_thinks else 0
+        opp_thinks_assa = 1 if CardType.Assassin in opp_thinks else 0
+        opp_thinks_cap = 1 if CardType.Captain in opp_thinks else 0
+
+        weights = [threshold, challenge, opp_thinks_duke, opp_thinks_cont, opp_thinks_assa, opp_thinks_cap]
 
         #finally factor in all known cards -> to opponents the cards you know in the deck are
         #indistinguishable from the ones in your hand (with minor exceptions but who needs to think bout that)
         known_cards = self.hand
         known_cards.extend(self.player_view.deck_knowledge.keys())
+        inv_influence = 3 - self.influence
         for card in known_cards:
             c_idx = card_types.index(card.type)
             if card.type == CardType.Ambassador:
-                weights[4] += .33
+                weights[4] += .33 * inv_influence
             elif card.type == CardType.Captain:
-                weights[5] += .33
+                weights[5] += .33 * inv_influence
             elif card.type == CardType.Contessa:
-                weights[3] += .33
+                weights[3] += 1
             elif card.type == CardType.Duke:
-                weights[2] += .33 
+                weights[2] += .33 *inv_influence
             
             if c_idx in action_to_card_idx[action_taken]:
-                weights[1] += .167
+                weights[1] += .167 * inv_influence
         
         decision_scores = np.multiply(one_hot_p_counters, weights)
+        print("decision scores: {}".format(decision_scores))
         return all_counters[np.argmax(decision_scores)]
 
     def select_targeted_player(self, action_taken: ActionType, possible_targets: List['Player']) -> 'Player':
@@ -398,7 +423,7 @@ class HeuristicPlayer(Player):
             #Steal from the rich, and give to yourself - Safest move
             possible_targets = self.player_view.can_Steal(possible_targets)
             p_targets = np.array([player.bank for player in possible_targets])
-            return possible_targets[np.argsort(p_targets)[0]]
+            return possible_targets[(np.argsort(p_targets)[::-1])[0]]
 
         else:
             p_targets = np.array([player.influence for player in possible_targets])

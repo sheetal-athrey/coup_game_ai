@@ -42,7 +42,8 @@ def repl(board: Board) -> Player:
     while not game_over:
         p_turn = board.players[board.turn]
         print("Current Turn: ", p_turn.name)
-        print("Player's still alive ", [p.name for p in board.players if p.influence > 0])
+        print("Player's influence ", [p.influence for p in board.players])
+        print("Player's bank ", [p.bank for p in board.players])
         if p_turn.influence <= 0:
             board.end_turn()
         else:
@@ -62,8 +63,9 @@ def repl(board: Board) -> Player:
 
             # End of action
         game_over, winner = check_win(board.players)
+    print("{} has won the game!".format(winner.name))
     return winner
-    print("{} has won the game!".format(winner))
+    
 
 
 def counter_action(player: Player, cPlayers: List[Player], action: constants.ActionType, card_claimed: Optional[constants.CardType],
