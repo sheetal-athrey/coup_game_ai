@@ -83,3 +83,22 @@ class Board:
         for player in self.players:
             self._deal_starting_hand(player)
             self._initialize_player_view(player)
+
+
+class ContinuationBoard(Board):
+    def __init__(self, turn : int, deck : Deck, players : List[Player], revealed : List[Card], lost_i : List[Player]  ):
+        self.turn = turn
+        self.deck = deck
+        self.players = players
+        self.revealed = revealed
+        self.lost_influence = lost_i
+    
+    #No recordkeeping needed here!
+    def update_player_actions(self, player: Player, rec_action : RecordedActions):
+        pass
+
+    def update_deck_knowledge(self, player: Player, card_pos: List[Tuple[Card,int]]):
+        pass
+
+    def update_card_drawn(self, num_drawn: int):
+        pass

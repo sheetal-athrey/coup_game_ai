@@ -1,7 +1,7 @@
 import sys, os
 import constants
 import random
-from player import Player, HeuristicPlayer, RandomPlayer
+from player import Player, HeuristicPlayer, RandomPlayer, TruthPlayer
 from board import Board
 from deck import Deck
 from card import Card, CardType
@@ -9,6 +9,7 @@ from repl import repl
 from typing import List, Tuple
 from utils import check_win
 from constants import prompt_user
+from RandomPlayout import randomPlayout
 
 import time
 
@@ -40,7 +41,7 @@ if __name__ == '__main__':
         blockPrint()
 
     now = time.time()
-    with open("Trevor3.txt", "w+") as f:
+    with open("Trevor_v_random.txt", "w+") as f:
         wins = [0,0]
         for x in range(10000):
             # Instantiate Players
