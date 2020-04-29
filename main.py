@@ -41,7 +41,7 @@ if __name__ == '__main__':
         blockPrint()
 
     now = time.time()
-    with open("Trevor_v_random.txt", "w+") as f:
+    with open("#TODOFILLTHISIN.txt", "a+") as f:
         wins = [0,0]
         for x in range(10000):
             # Instantiate Players
@@ -71,7 +71,7 @@ if __name__ == '__main__':
             else:
                 wins[1] +=1
         f.write(str(wins))
-        f.write("Total Runtime : {}".format(time.time()-now))
+        f.write("Total Runtime : {} \n".format(time.time()-now))
 
 
 
