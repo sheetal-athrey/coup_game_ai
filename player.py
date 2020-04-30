@@ -236,6 +236,27 @@ class TruthPlayer(RandomPlayer):
             if t in associations:
                 possible_actions.append(associations[t])
         return random.choice(possible_actions)
+    
+    def make_counter_decision(self, action_taken: ActionType, acting_player: 'Player') -> CounterDecisions:
+        counter_association ={
+            CounterDecisions.BlockForeignAid : CardType.Duke,
+            CounterDecisions.BlockStealingAmbassador : CardType.Ambassador,
+            CounterDecisions.BlockStealingCaptain : CardType.Captain,
+            CounterDecisions.BlockAssassination : CardType.Contessa,
+        }
+        print(action_taken)
+        hand_types = [c.type for c in self.hand]
+        possible_counters = action_taken.value[1]
+        allowed_counters = []
+        for counter in possible_counters:
+            if counter in counter_association:
+                if counter_association[counter] in hand_types:
+                    allowed_counters.append(counter)
+            else:
+                allowed_counters.append(counter)
+        chosen = random.choice(possible_counters)
+        print(chosen)
+        return chosen
 
 
 class HeuristicPlayer(Player):
