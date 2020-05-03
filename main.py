@@ -1,12 +1,19 @@
 import sys, os
 import constants
 import random
-from player import Player, HeuristicPlayer, RandomPlayer
+from player import Player, HeuristicPlayer, RandomPlayer, TruthPlayer
 from board import Board
 from deck import Deck
 from card import Card, CardType
 from repl import repl
+<<<<<<< HEAD
 from utils import enable_print, block_print
+=======
+from typing import List, Tuple
+from utils import check_win
+from constants import prompt_user
+from RandomPlayout import randomPlayout
+>>>>>>> 0581c7d77d281e8f5cad6f64245ea374633efa0f
 
 import time
 
@@ -31,7 +38,7 @@ if __name__ == '__main__':
         block_print()
 
     now = time.time()
-    with open("Trevor3.txt", "w+") as f:
+    with open("#TODOFILLTHISIN.txt", "a+") as f:
         wins = [0,0]
         for x in range(10000):
             # Instantiate Players
@@ -61,7 +68,7 @@ if __name__ == '__main__':
             else:
                 wins[1] +=1
         f.write(str(wins))
-        f.write("Total Runtime : {}".format(time.time()-now))
+        f.write("Total Runtime : {} \n".format(time.time()-now))
 
 
 
