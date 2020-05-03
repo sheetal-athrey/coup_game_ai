@@ -5,7 +5,19 @@ from player import Player
 from board import Board
 from deck import Deck
 from card import Card, CardType
-from typing import List, Tuple
+from typing import List, Tuple, Optional
+import os
+
+
+
+# Disable
+def block_print():
+    sys.stdout = open(os.devnull, 'w')
+
+
+# Restore
+def enable_print():
+    sys.stdout = sys.__stdout__
 
 
 def lose_card(affected_player: Player, board: Board):
@@ -21,7 +33,7 @@ def lose_card(affected_player: Player, board: Board):
         print("{} has lost influence".format(affected_player.name))
 
 
-def check_win(players: List[Player]) -> Tuple[bool, Player]:
+def check_win(players: List[Player]) -> Tuple[bool, Optional[Player]]:
     """
     Returns a tuple representing the game is over and who the winner is.
 
@@ -60,3 +72,73 @@ def process_counter(player: Player, counter_card: Card, board: Board):
         board.update_player_actions(player, constants.RecordedActions.Block_Foreign_Aid)
     elif counter_card.type == CardType.Contessa:
         board.update_player_actions(player, constants.RecordedActions.Block_Assassination)
+
+
+def get_initial_card_lists(list_card_names: List[List[str]]) -> List[List[Card]]:
+    initial_card_lists = []
+    for names in list_card_names:
+        cards = []
+        for name in names:
+            if "Ambassador" in name:
+                cards.append(Card(CardType.Ambassador))
+            elif "Assassin" in name:
+                cards.append(Card(CardType.Assassin))
+            elif "Captain" in name:
+                cards.append(Card(CardType.Captain))
+            elif "Contessa" in name:
+                cards.append(Card(CardType.Contessa))
+            elif "Duke" in name:
+                cards.append(Card(CardType.Duke))
+            else:
+                raise Exception("Invalid Card in config file {}".format(name))
+        initial_card_lists.append(cards)
+
+    return initial_card_lists
+
+
+def create_custom_board(path_to_config: str) -> Board:
+    file = open(path_to_config, "r")
+    player_configs = file.readlines()
+    file.close()
+
+    players = []
+    player_cards = []
+
+    # Dictionary to track remaining cards
+    track_cards_remaining = {}
+    for t in CardType:
+        track_cards_remaining[t] = constants.NUM_COPIES
+
+    for player_num in range(len(player_configs)):
+        starting_cards = player_configs[player_num].split(',')[1:]
+        player_cards.append(starting_cards)
+
+        players.append(Player(str(player_num)))
+
+    initial_card_lists = get_initial_card_lists(starting_cards)
+
+    for card_list in initial_card_lists:
+        for card in card_list:
+            if track_cards_remaining[card.type] == 0:
+                raise Exception("There are too many {} in the config file.".format(card.type.value))
+            track_cards_remaining[card.type] -= 1
+
+    # Create the deck
+    deck = []
+    for t in track_cards_remaining.keys():
+        for i in range(track_cards_remaining[t]):
+            deck.append(Card(t))
+
+    board = Board(players, Deck(deck), custom=True, initial_cards=initial_card_lists)
+
+    return board
+
+
+
+
+
+
+
+
+
+

@@ -6,19 +6,10 @@ from board import Board
 from deck import Deck
 from card import Card, CardType
 from repl import repl
-from typing import List, Tuple
-from utils import check_win
-from constants import prompt_user
+from utils import enable_print, block_print
 
 import time
 
-# Disable
-def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
-
-# Restore
-def enablePrint():
-    sys.stdout = sys.__stdout__
 
 if __name__ == '__main__':
     """
@@ -35,9 +26,9 @@ if __name__ == '__main__':
         print("There must be two or more players")
         exit()
     if arg_bool == "debug":
-        enablePrint()
+        enable_print()
     else:
-        blockPrint()
+        block_print()
 
     now = time.time()
     with open("Trevor3.txt", "w+") as f:
