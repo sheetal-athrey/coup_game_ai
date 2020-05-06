@@ -2,7 +2,9 @@ from player import Player
 from deck import Deck
 from typing import List, Tuple
 from constants import RecordedActions
-from card import Card
+from card import Card, CardType
+import numpy as np
+from typing import List
 
 
 class Board:
@@ -83,6 +85,36 @@ class Board:
         for player in self.players:
             self._deal_starting_hand(player)
             self._initialize_player_view(player)
+
+    def heuristic_func(self) -> List[int]:
+        #super bare bones heuristic function
+
+        card_weights = {
+            CardType.Captain : .8,
+            CardType.Duke : .5,
+            CardType.Assassin : .4,
+            CardType.Contessa : .3,
+            CardType.Ambassador : .5
+        }
+
+        scores = np.zeros(len(self.players))
+        for i in range(len(self.players)):
+            p = self.players[i]
+            if p.influence <= 0:
+                score = -1
+            else:
+                score = 0
+                score += p.influence
+                hand_types = [c.type for c in p.hand]
+                for t in hand_types:
+                    score += card_weights[t]
+                if p.bank >= 3:
+                    score += .3
+                elif p.bank >= 10:
+                    score += .7
+                elif p.bank >=7:
+                    score += 1
+            scores[i] = score
 
 
 class ContinuationBoard(Board):
