@@ -76,9 +76,7 @@ def process_counter(player: Player, counter_card: Card, board: Board):
 
 def get_initial_card_lists(list_card_names: List[List[str]]) -> List[List[Card]]:
     initial_card_lists = []
-    print("This is the list of card names", list_card_names)
     for names in list_card_names:
-        print("name", names)
         cards = []
         for name in names:
             name = name.strip()
@@ -101,9 +99,7 @@ def get_initial_card_lists(list_card_names: List[List[str]]) -> List[List[Card]]
 
 
 def create_player(player_type: str, player_num: int):
-    print("THIS IS THE PLAYER TYPE AND NUM", player_type, player_num)
     if "Random" == player_type:
-        print("Player type is random")
         return RandomPlayer(player_num)
     elif "Truth" == player_type:
         return TruthPlayer(player_num)
@@ -113,11 +109,10 @@ def create_player(player_type: str, player_num: int):
         return Player(player_num)
 
 
-
 def create_custom_board(path_to_config: str) -> Board:
     with open(path_to_config, "r") as json_config:
         player_configs = json.load(json_config)
-        print("Player configs", player_configs)
+
     players = []
     player_cards = []
 
@@ -126,31 +121,51 @@ def create_custom_board(path_to_config: str) -> Board:
     for t in CardType:
         track_cards_remaining[t] = constants.NUM_COPIES
 
-    # Mistake here
+    # List for players without initial cards assigned to them.
+    uninitialized_players = []
+
     for player_num in range(len(player_configs)):
-        starting_cards = player_configs[player_num][1:]
-        player_cards.append(starting_cards)
 
         players.append(create_player(player_configs[player_num][0], player_num))
 
-    print(player_cards)
+        if len(player_configs[player_num]) == 1:
+            # Keep buffer to provide random cards later
+            player_cards.append([])
+            uninitialized_players.append(player_num)
+        else:
+            starting_cards = player_configs[player_num][1:]
+            player_cards.append(starting_cards)
 
-    initial_card_lists = get_initial_card_lists(player_cards)
+    # Get count of cards that have already been initialized
+    initialized_card_lists = get_initial_card_lists(player_cards)
 
-    for card_list in initial_card_lists:
+    for card_list in initialized_card_lists:
         for card in card_list:
             if track_cards_remaining[card.type] == 0:
                 raise Exception("There are too many {} in the config file.".format(card.type.value))
             track_cards_remaining[card.type] -= 1
 
-    # Create the deck
+    # Create the remaining deck
     deck = []
     for t in track_cards_remaining.keys():
         for i in range(track_cards_remaining[t]):
             deck.append(Card(t))
 
-    print("THE LENGTH OF PLAYERS", len(players))
-    board = Board(players, Deck(deck), custom=True, initial_cards=initial_card_lists)
+    # Shuffle deck and randomize cards
+    random.shuffle(deck)
+
+    print("This is the list of uninitilaized players", uninitialized_players)
+    dd = [i.type.value for i in deck]
+    print('This is the deck', dd)
+    # Give correct cards to players
+    for player_num in uninitialized_players:
+        player_cards[player_num] = [deck[0].type.value, deck[1].type.value]
+        deck = deck[2:]
+
+    all_initialized_card_lists = get_initial_card_lists(player_cards)
+    print("ALL INITIALIZED CARD LISTS")
+
+    board = Board(players, Deck(deck), custom=True, initial_cards=all_initialized_card_lists)
 
     return board
 

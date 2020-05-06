@@ -1,13 +1,10 @@
 from player import Player, RandomPlayer, HeuristicPlayer
 import os
 import sys
-from constants import CardType, NUM_COPIES
-from deck import Deck
-from board import Board
-from card import Card
-from utils import create_custom_board
+from utils import create_custom_board, block_print, enable_print
 from repl import repl
 from logging_utils import update_json
+from tqdm import tqdm
 
 
 
@@ -32,16 +29,17 @@ if __name__ == "__main__":
 
     num_trials = int(sys.argv[3])
 
-    for i in range(num_trials):
-        board = create_custom_board(path_to_config)
+    for i in tqdm(range(num_trials)):
+        block_print()
 
+        board = create_custom_board(path_to_config)
         initial_cards = board.get_player_cards()
         player_types = board.get_player_types()
-
         winner = repl(board)
 
-        winner_index = board.get_index_of_player(winner)
+        enable_print()
 
+        winner_index = board.get_index_of_player(winner)
         update_json(path_to_json, initial_cards, player_types, winner_index)
 
 

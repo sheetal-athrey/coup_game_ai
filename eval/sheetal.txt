@@ -1,1 +1,1 @@
-[]
+[[[["Ambassador", "Ambassador"], ["Duke", "Contessa"], ["Ambassador", "Assassin"]], ["Heuristic", "Random", "Random"], 0], [[["Ambassador", "Ambassador"], ["Assassin", "Contessa"], ["Contessa", "Captain"]], ["Heuristic", "Random", "Random"], 0]]

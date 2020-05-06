@@ -1,0 +1,6 @@
+[
+	["Heuristic", "Ambassador", "Ambassador"],
+	["Random"],
+	["Random"]
+]
+

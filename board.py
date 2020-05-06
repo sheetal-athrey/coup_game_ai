@@ -111,11 +111,9 @@ class Board:
                 self._initialize_player_view(player)
         else:
             for player, cards in zip(self.players, initial_cards):
+                print([cards[0].type.value, cards[1].type.value])
                 player.hand = cards
                 self._initialize_player_view(player)
-        for player in self.players:
-            self._deal_starting_hand(player)
-            self._initialize_player_view(player)
 
     def heuristic_func(self) -> List[int]:
         #super bare bones heuristic function
