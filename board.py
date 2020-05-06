@@ -1,6 +1,6 @@
 from player import Player
 from deck import Deck
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from constants import RecordedActions
 from card import Card, CardType
 import numpy as np
@@ -74,7 +74,30 @@ class Board:
         card = self.deck.draw_cards(1)[0]
         player.hand.append(card)
 
-    def __init__(self, players: List[Player], deck: Deck):
+    def get_index_of_player(self, player: Player):
+        player_index = 0
+        for p in self.players:
+            if p == player:
+                return player_index
+            player_index += 1
+        raise Exception("Invalid player provided")
+
+    def get_player_cards(self):
+        cards = []
+        for p in self.players:
+            player_cards = []
+            for card in p.hand:
+                player_cards.append(card.type.value)
+            cards.append(player_cards)
+        return cards
+
+    def get_player_types(self):
+        types = []
+        for p in self.players:
+            types.append(p.id)
+        return types
+
+    def __init__(self, players: List[Player], deck: Deck, custom: bool = False, initial_cards: Optional[List[List[Card]]]= None):
         self.turn = 0
         self.deck = deck
         self.players = players
@@ -82,6 +105,14 @@ class Board:
         self.lost_influence = []
 
         # Deal initial hands
+        if not custom:
+            for player in self.players:
+                self._deal_starting_hand(player)
+                self._initialize_player_view(player)
+        else:
+            for player, cards in zip(self.players, initial_cards):
+                player.hand = cards
+                self._initialize_player_view(player)
         for player in self.players:
             self._deal_starting_hand(player)
             self._initialize_player_view(player)

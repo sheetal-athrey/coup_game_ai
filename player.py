@@ -75,6 +75,7 @@ class PlayerView:
 
 class Player:
     def __init__(self, name: str):
+        self.id = "Human"
         self.name = name
         self.hand = []
         self.bank = STARTING_MONEY
@@ -187,6 +188,7 @@ class Player:
 class RandomPlayer(Player):
     def __init__(self, name: str):
         super().__init__(name)
+        self.id = "Random"
 
     def select_action(self) -> ActionType:
         possible_actions = [e for e in ActionType if e.value[0]<7]
@@ -262,6 +264,7 @@ class TruthPlayer(RandomPlayer):
 class HeuristicPlayer(Player):
     def __init__(self, name: str):
         super().__init__(name)
+        self.id = "Heuristic"
         self.possible_cards = [card for card in CardType]
         self.card_confidence = {
             CardType.Captain : .8,
@@ -326,7 +329,9 @@ class HeuristicPlayer(Player):
             opponents = list(filter(lambda p : p.influence > 0 and p != self, self.player_view.players))
             opponent_claim_cards = self.player_view.claimed_cards(opponents) # p x c
             total_claims = np.sum(opponent_claim_cards, axis = 0)
+
             most_rel_opp_cards = np.argsort(total_claims)[::-1]
+
             wanted_cards = []
             for rel_card_idx in most_rel_opp_cards:
                 if card_types[rel_card_idx] == CardType.Ambassador:

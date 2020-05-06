@@ -6,20 +6,17 @@ from board import Board
 from deck import Deck
 from card import Card, CardType
 from repl import repl
+<<<<<<< HEAD
+from utils import enable_print, block_print
+=======
 from typing import List, Tuple
 from utils import check_win
 from constants import prompt_user
 from RandomPlayout import randomPlayout
+>>>>>>> 0581c7d77d281e8f5cad6f64245ea374633efa0f
 
 import time
 
-# Disable
-def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
-
-# Restore
-def enablePrint():
-    sys.stdout = sys.__stdout__
 
 if __name__ == '__main__':
     """
@@ -36,9 +33,9 @@ if __name__ == '__main__':
         print("There must be two or more players")
         exit()
     if arg_bool == "debug":
-        enablePrint()
+        enable_print()
     else:
-        blockPrint()
+        block_print()
 
     now = time.time()
     with open("#TODOFILLTHISIN.txt", "a+") as f:
