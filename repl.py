@@ -47,6 +47,7 @@ def repl(board: Board) -> Player:
         if p_turn.influence <= 0:
             board.end_turn()
         else:
+            print("THIS IS P_TURN", p_turn)
             if isinstance(p_turn, RandomPlayer) or isinstance(p_turn, HeuristicPlayer):
                 selected_action = p_turn.select_action()
                 process_action(selected_action, p_turn, board)

@@ -7,6 +7,7 @@ from board import Board
 from card import Card
 from utils import create_custom_board
 from repl import repl
+from logging_utils import update_json
 
 
 

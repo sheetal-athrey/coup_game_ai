@@ -1,13 +1,13 @@
 import sys
 import constants
 import random
-from player import Player
+from player import Player, RandomPlayer, TruthPlayer, HeuristicPlayer
 from board import Board
 from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple, Optional
 import os
-
+import json
 
 
 # Disable
@@ -76,9 +76,13 @@ def process_counter(player: Player, counter_card: Card, board: Board):
 
 def get_initial_card_lists(list_card_names: List[List[str]]) -> List[List[Card]]:
     initial_card_lists = []
+    print("This is the list of card names", list_card_names)
     for names in list_card_names:
+        print("name", names)
         cards = []
         for name in names:
+            name = name.strip()
+            print(name)
             if "Ambassador" in name:
                 cards.append(Card(CardType.Ambassador))
             elif "Assassin" in name:
@@ -96,11 +100,24 @@ def get_initial_card_lists(list_card_names: List[List[str]]) -> List[List[Card]]
     return initial_card_lists
 
 
-def create_custom_board(path_to_config: str) -> Board:
-    file = open(path_to_config, "r")
-    player_configs = file.readlines()
-    file.close()
+def create_player(player_type: str, player_num: int):
+    print("THIS IS THE PLAYER TYPE AND NUM", player_type, player_num)
+    if "Random" == player_type:
+        print("Player type is random")
+        return RandomPlayer(player_num)
+    elif "Truth" == player_type:
+        return TruthPlayer(player_num)
+    elif "Heuristic" == player_type:
+        return HeuristicPlayer(player_num)
+    else:
+        return Player(player_num)
 
+
+
+def create_custom_board(path_to_config: str) -> Board:
+    with open(path_to_config, "r") as json_config:
+        player_configs = json.load(json_config)
+        print("Player configs", player_configs)
     players = []
     player_cards = []
 
@@ -109,13 +126,16 @@ def create_custom_board(path_to_config: str) -> Board:
     for t in CardType:
         track_cards_remaining[t] = constants.NUM_COPIES
 
+    # Mistake here
     for player_num in range(len(player_configs)):
-        starting_cards = player_configs[player_num].split(',')[1:]
+        starting_cards = player_configs[player_num][1:]
         player_cards.append(starting_cards)
 
-        players.append(Player(str(player_num)))
+        players.append(create_player(player_configs[player_num][0], player_num))
 
-    initial_card_lists = get_initial_card_lists(starting_cards)
+    print(player_cards)
+
+    initial_card_lists = get_initial_card_lists(player_cards)
 
     for card_list in initial_card_lists:
         for card in card_list:
@@ -129,6 +149,7 @@ def create_custom_board(path_to_config: str) -> Board:
         for i in range(track_cards_remaining[t]):
             deck.append(Card(t))
 
+    print("THE LENGTH OF PLAYERS", len(players))
     board = Board(players, Deck(deck), custom=True, initial_cards=initial_card_lists)
 
     return board
