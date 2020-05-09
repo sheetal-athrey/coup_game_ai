@@ -1,4 +1,4 @@
-action_to_card_idximport sys, os
+import sys, os
 import constants
 import random
 from player import Player, HeuristicPlayer, RandomPlayer, TruthPlayer
