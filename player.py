@@ -84,6 +84,7 @@ class Player:
 
     def display_hand(self):
         print("{} has the following cards:".format(self.name))
+        print(self.hand)
         for i in range(len(self.hand)):
             card = self.hand[i]
             print("{} - Type: {}".format(i, card.type))
@@ -420,8 +421,9 @@ class HeuristicPlayer(Player):
 
         #finally factor in all known cards -> to opponents the cards you know in the deck are
         #indistinguishable from the ones in your hand (with minor exceptions but who needs to think bout that)
-        known_cards = self.hand
-        known_cards.extend(self.player_view.deck_knowledge.keys())
+
+        known_cards = self.hand + list(self.player_view.deck_knowledge.keys())
+
         inv_influence = 3 - self.influence
         for card in known_cards:
             c_idx = card_types.index(card.type)

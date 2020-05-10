@@ -9,6 +9,11 @@ from typing import List
 
 class Board:
 
+    def display(self):
+        print("The turn numbers is {}".format(self.turn))
+        for player in self.players:
+            print(player.name, player.influence, len(player.hand), [c.type for c in player.hand])
+
     def _deal_starting_hand(self, player: Player):
         player.hand = self.deck.draw_cards(2)
 

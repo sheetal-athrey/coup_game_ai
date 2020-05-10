@@ -41,13 +41,15 @@ def repl(board: Board) -> Player:
     game_over, winner = check_win(board.players)
     while not game_over:
         p_turn = board.players[board.turn]
-        print("Current Turn: ", p_turn.name)
-        print("Player's influence ", [p.influence for p in board.players])
-        print("Player's bank ", [p.bank for p in board.players])
+        print("                     Current Turn: ", p_turn.name)
+        print("                     Player's influence ", [p.influence for p in board.players])
+        print("                     Player's bank ", [p.bank for p in board.players])
+        print("                     Player's hand size", [len(p.hand) for p in board.players])
+
         if p_turn.influence <= 0:
             board.end_turn()
         else:
-            print("THIS IS P_TURN", p_turn)
+            print("THIS IS P_TURN", p_turn.name)
             if isinstance(p_turn, RandomPlayer) or isinstance(p_turn, HeuristicPlayer):
                 selected_action = p_turn.select_action()
                 process_action(selected_action, p_turn, board)
@@ -76,6 +78,8 @@ def counter_action(player: Player, cPlayers: List[Player], action: constants.Act
     """
     decided_counteractors = []
     # Loop through possible players and see if they would like to invoke a counteraction#
+
+
     for p in cPlayers:
         counter_decision = p.make_counter_decision(action, player)
         if counter_decision != constants.CounterDecisions.DoNothing:
@@ -148,6 +152,7 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
         possible_challengers = get_alive_opponents(board, player)
         allowed = counter_action(player, possible_challengers, action, constants.CounterActions.BlockForeignAid.value,
                                  board)
+
         if allowed:
             print("{} takes ForeignAid".format(player.name))
             player.bank += 2
@@ -209,7 +214,6 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
 
         alive_opponents = get_alive_opponents(board, player)
         targeted_user = player.select_targeted_player(constants.ActionType.Steal, alive_opponents)
-        print("attempting steal by {} from {}".format(player.name, targeted_user.name))
         allowed = counter_action(player, [targeted_user], action, constants.ActionPowers.Steal.value, board)
 
         if allowed:
@@ -219,7 +223,9 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
             steal_amt = min(2, targeted_user.bank)
             player.bank += steal_amt
             targeted_user.bank -= steal_amt
-            print("{} now has {} coins in bank".format(targeted_user.name, targeted_user.bank))
+            print("------------------------------------{} now has {} coins in bank".format(targeted_user.name, targeted_user.bank))
+        else:
+            print("------------------the steal was blocked")
         board.update_player_actions(player, RecordedActions.Steal)
         board.end_turn()
 
@@ -230,14 +236,14 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
         allowed = counter_action(player, possible_challengers, action, constants.ActionPowers.Exchange.value, board)
 
         if allowed:
-            print("{} exchanges with the court deck".format(player.name))
+            print("{} exchange {} cards with the court deck".format(player.name, len(player.hand)))
             # Force player to select from cards in their hand and two random cards drawn from the deck.
             new_cards = board.deck.draw_cards(constants.NUM_EXCHANGE)
             possible_cards = player.hand + new_cards  # type: List[Card]
 
             selected_cards = player.select_cards(possible_cards, player.influence)
-
             bottom_cards = []
+
             # Handle exchange transaction
             if len(selected_cards) == player.influence:
                 player.hand = selected_cards

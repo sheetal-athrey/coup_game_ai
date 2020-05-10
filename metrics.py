@@ -5,6 +5,8 @@ from utils import create_custom_board, block_print, enable_print
 from repl import repl
 from logging_utils import update_json
 from tqdm import tqdm
+import copy
+import json
 
 
 
@@ -29,18 +31,33 @@ if __name__ == "__main__":
 
     num_trials = int(sys.argv[3])
 
-    for i in tqdm(range(num_trials)):
-        block_print()
+    with open(path_to_config, "r") as json_config:
+        player_configs = json.load(json_config)
 
-        board = create_custom_board(path_to_config)
-        initial_cards = board.get_player_cards()
-        player_types = board.get_player_types()
-        winner = repl(board)
+    json_update_info = []
 
-        enable_print()
+    try:
+        for i in tqdm(range(num_trials)):
+            # block_print()
+            print("--------------------------------------------------------", "GAME", i, "------------------------------------------------")
+            print("########################################################################################################################")
+            board = create_custom_board(player_configs)
 
-        winner_index = board.get_index_of_player(winner)
-        update_json(path_to_json, initial_cards, player_types, winner_index)
+            initial_cards = board.get_player_cards()
+            player_types = board.get_player_types()
+            winner = repl(board)
+
+            # enable_print()
+
+            winner_index = board.get_index_of_player(winner)
+
+            json_update_info.append([initial_cards, winner_index, player_types])
+
+        update_json(path_to_json, json_update_info)
+    except KeyboardInterrupt:
+        print("OKAY")
+        board.display()
+
 
 
 

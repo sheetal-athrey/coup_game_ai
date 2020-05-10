@@ -109,9 +109,7 @@ def create_player(player_type: str, player_num: int):
         return Player(player_num)
 
 
-def create_custom_board(path_to_config: str) -> Board:
-    with open(path_to_config, "r") as json_config:
-        player_configs = json.load(json_config)
+def create_custom_board(player_configs) -> Board:
 
     players = []
     player_cards = []
