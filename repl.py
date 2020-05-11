@@ -9,7 +9,7 @@ from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple, Optional
 from utils import check_win, get_alive_opponents, process_counter, lose_card
-from constants import RecordedActions, prompt_user, get_action_type_from_counter_decision, get_card_from_counter_decision, SELECT_ACTION_STRING
+from constants import RecordedActions, prompt_user, get_action_type_from_counter_decision, get_card_from_counter_decision, SELECT_ACTION_STRING, CounterDecisions
 
 
 def process_input(input_string: str, player: Player, board: Board):
@@ -98,15 +98,25 @@ def counter_action(player: Player, cPlayers: List[Player], action: constants.Act
     else:
 
         # Update board state about blocking based on ???
+        counter_to_recording = {
+            CounterDecisions.BlockAssassination : RecordedActions.Block_Assassination,
+            CounterDecisions.BlockForeignAid : RecordedActions.Block_Foreign_Aid,
+            CounterDecisions.BlockStealingAmbassador : RecordedActions.Block_Steal,
+            CounterDecisions.BlockStealingCaptain : RecordedActions.Block_Steal
+        }
 
         counter_counter_decision = player.make_counter_decision(
                                             get_action_type_from_counter_decision(selected_counteractor[1]),
                                             selected_counteractor[0])
 
         if counter_counter_decision == constants.CounterDecisions.DoNothing:
+            board.update_player_actions(selected_counteractor[0], counter_to_recording[selected_counteractor[1]])
             return False
         elif counter_counter_decision == constants.CounterDecisions.Challenge:
-            return challenge(selected_counteractor[0], player, get_card_from_counter_decision(selected_counteractor[1]), board)
+            allowed = challenge(selected_counteractor[0], player, get_card_from_counter_decision(selected_counteractor[1]), board)
+            if not allowed:
+                board.update_player_actions(selected_counteractor[0], counter_to_recording[selected_counteractor[1]])
+            return allowed
         else:
             raise Exception("You can't counteract here.")
 

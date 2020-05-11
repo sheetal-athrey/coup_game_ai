@@ -61,7 +61,7 @@ class PlayerView:
     def can_Steal(self, players: List['Player']) -> List['Player']:
         can = players.copy()
         for p in players:
-           if self.player_claims[p][RecordedActions.Block_Steal] > 1:
+            if self.player_claims[p][RecordedActions.Block_Steal] > 1:
                can.remove(p)
         return can
     
@@ -294,7 +294,7 @@ class HeuristicPlayer(Player):
         thought_types = set(thought_types)
         hand_types = [card.type for card in self.hand]
 
-        opponents = list(filter(lambda p : p.influence > 0, self.player_view.players))
+        opponents = list(filter(lambda p : p.influence > 0 and p != self, self.player_view.players))
         can_steal = len(self.player_view.can_Steal(opponents)) > 0
         can_assassinate = len(self.player_view.can_Assassinate(opponents)) > 0
         can_fa = self.player_view.can_FA(opponents)
