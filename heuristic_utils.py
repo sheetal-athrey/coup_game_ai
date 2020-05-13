@@ -11,9 +11,6 @@ def apply(operation: Operation, state: State, next_player_turn: int, curr_player
 
 
 
-State -Player 1
-
-
 # Are these needed?
 class Operation(Enum):
     TakeIncome = auto()

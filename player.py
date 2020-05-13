@@ -72,6 +72,9 @@ class PlayerView:
                can.remove(p)
         return can
 
+    def update_action(self, player_id: int, action: RecordedActions, value: int):
+        player = self.players[player_id]
+        self.player_claims[player][action] += value
 
 class Player:
     def __init__(self, name: str):
@@ -192,7 +195,7 @@ class RandomPlayer(Player):
         self.id = "Random"
 
     def select_action(self) -> ActionType:
-        possible_actions = [e for e in ActionType if e.value[0]<7]
+        possible_actions = [e for e in ActionType if e.value[0] < 7]
         if self.bank >= 10:
             return ActionType.Coup
         else:

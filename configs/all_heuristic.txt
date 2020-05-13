@@ -1,6 +1,6 @@
 [
-	["Heuristic", "Ambassador", "Ambassador"],
-	["Random"],
-	["Random"]
+	["Heuristic", "Duke", "Duke"],
+	["Heuristic", "Captain", "Contessa"],
+	["Heuristic", "Ambassador", "Captain"]
 ]
 
