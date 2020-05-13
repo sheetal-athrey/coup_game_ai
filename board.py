@@ -5,6 +5,7 @@ from constants import RecordedActions
 from card import Card, CardType
 import numpy as np
 from typing import List
+import utils
 
 
 class Board:
@@ -30,6 +31,11 @@ class Board:
         player.player_view.revealed = self.revealed # Gives pointer
         player.player_view.lost_influence = self.lost_influence  # Gives pointer
 
+    def clear_player_actions(self, player):
+        for p in self.players:
+            for rec_action in RecordedActions:
+                p.player_view.player_claims[player][rec_action] = 0
+
     def update_player_actions(self, player: Player, rec_action : RecordedActions):
         for p in self.players:
             p.player_view.player_claims[player][rec_action] += 1
@@ -50,6 +56,9 @@ class Board:
 
     def end_turn(self):
         self.turn = (self.turn + 1) % len(self.players)
+        self.turn_counter += 1
+        if self.turn_counter > 50:
+            utils.enable_print()
 
     def display_board(self):
         print("Player's Influence:")
@@ -108,6 +117,7 @@ class Board:
         self.players = players
         self.revealed = []
         self.lost_influence = []
+        self.turn_counter = 0
 
         # Deal initial hands
         if not custom:

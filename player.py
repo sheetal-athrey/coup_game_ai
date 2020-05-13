@@ -434,7 +434,7 @@ class HeuristicPlayer(Player):
             elif card.type == CardType.Contessa:
                 weights[3] += 1
             elif card.type == CardType.Duke:
-                weights[2] += .33 *inv_influence
+                weights[2] += .33 * inv_influence
             
             if c_idx in action_to_card_idx[action_taken]:
                 weights[1] += .167 * inv_influence

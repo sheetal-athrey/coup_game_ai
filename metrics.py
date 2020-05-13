@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     try:
         for i in tqdm(range(num_trials)):
-            # block_print()
+            block_print()
             print("--------------------------------------------------------", "GAME", i, "------------------------------------------------")
             print("########################################################################################################################")
             board = create_custom_board(player_configs)
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             player_types = board.get_player_types()
             winner = repl(board)
 
-            # enable_print()
+            enable_print()
 
             winner_index = board.get_index_of_player(winner)
 
@@ -55,8 +55,10 @@ if __name__ == "__main__":
 
         update_json(path_to_json, json_update_info)
     except KeyboardInterrupt:
+        enable_print()
         print("OKAY")
         board.display()
+        print(initial_cards)
 
 
 
