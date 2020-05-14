@@ -11,6 +11,7 @@ from typing import List, Tuple
 from utils import check_win
 from constants import prompt_user
 from RandomPlayout import randomPlayout
+from minimax import MinimaxPlayer
 
 import time
 
@@ -35,11 +36,11 @@ if __name__ == '__main__':
         block_print()
 
     now = time.time()
-    with open("#TODOFILLTHISIN.txt", "a+") as f:
+    with open("eval/sheetal.txt", "a+") as f:
         wins = [0,0]
-        for x in range(10000):
+        for x in range(1):
             # Instantiate Players
-            p1 = HeuristicPlayer("P1")
+            p1 = MinimaxPlayer("P1")
             p2 = RandomPlayer("P2")
             player_list = [p1, p2]
             # for x in range(num_players):

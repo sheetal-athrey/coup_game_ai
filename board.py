@@ -5,7 +5,7 @@ from constants import RecordedActions
 from card import Card, CardType
 import numpy as np
 from typing import List
-import utils
+# import utils
 
 
 class Board:
@@ -57,8 +57,8 @@ class Board:
     def end_turn(self):
         self.turn = (self.turn + 1) % len(self.players)
         self.turn_counter += 1
-        if self.turn_counter > 50:
-            utils.enable_print()
+        # if self.turn_counter > 50:
+        #     utils.enable_print()
 
     def display_board(self):
         print("Player's Influence:")
