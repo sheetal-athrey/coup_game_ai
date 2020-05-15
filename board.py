@@ -168,8 +168,9 @@ class ContinuationBoard(Board):
         self.players = players
         self.revealed = revealed
         self.lost_influence = lost_i
+        self.turn_counter = 0
     
-    #No recordkeeping needed here!
+    #No record-keeping needed here!
     def update_player_actions(self, player: Player, rec_action : RecordedActions):
         pass
 

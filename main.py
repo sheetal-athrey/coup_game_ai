@@ -12,6 +12,7 @@ from utils import check_win
 from constants import prompt_user
 from RandomPlayout import randomPlayout
 from minimax import MinimaxPlayer
+from tqdm import tqdm
 
 import time
 
@@ -36,12 +37,12 @@ if __name__ == '__main__':
         block_print()
 
     now = time.time()
-    with open("eval/sheetal.txt", "a+") as f:
+    with open("eval/trevor.txt", "a+") as f:
         wins = [0,0]
-        for x in range(1):
+        for x in tqdm(range(100)):
             # Instantiate Players
             p1 = MinimaxPlayer("P1")
-            p2 = RandomPlayer("P2")
+            p2 = HeuristicPlayer("P2")
             player_list = [p1, p2]
             # for x in range(num_players):
             #     # print("What is your name p{}?".format(x+1))

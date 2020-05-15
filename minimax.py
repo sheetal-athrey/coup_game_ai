@@ -1,7 +1,9 @@
 from typing import List, Tuple, Optional
 from constants import RecordedActions, ActionType, CounterDecisions
 from player import PlayerView, HeuristicPlayer
+from RandomPlayout import randomPlayout
 import numpy as np
+import sys
 
 
 def get_alive_opponent_ids(influence_list: List[int], current_player: int) -> List[int]:
@@ -55,7 +57,8 @@ def minimax_action(currDepth: int, targetDepth: int, p_id: int, influence: List[
 
     influence_array = np.array(influence)
     if currDepth == targetDepth or (influence_array > 0).sum() == 1:
-        return (None, None), eval(influence, bank, p_view)
+        #return (None, None), eval(influence, bank, p_view)
+        return (None,None), randomPlayout(influence, bank, p_id, 5)
 
     # Increment depth check
     currDepth += 1
@@ -144,6 +147,17 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
                               possible_counteractor_ids: List[int], influence: List[int], bank: List[int],
                               p_view: PlayerView) -> ((CounterDecisions, int), List[float]):
 
+    #handles the case in which the player is calling this while being countered, mostly due to how we recieve inputs from
+    #baord. Thus not an issue besides when directly invoked from player
+    if action == ActionType.Block_Assassination:
+        return minimax_block_action(currDepth, targetDepth, ActionType.Assassinate, possible_counteractor_ids[0], CounterDecisions.BlockAssassination, actor_id, influence, bank, p_view)
+    elif action == ActionType.Block_Foreign_Aid: 
+        return minimax_block_action(currDepth, targetDepth, ActionType.Foreign_aid, possible_counteractor_ids[0], CounterDecisions.BlockForeignAid, actor_id, influence, bank, p_view)
+    elif action == ActionType.Block_Steal_Ambassador:
+        return minimax_block_action(currDepth, targetDepth, ActionType.Steal, possible_counteractor_ids[0], CounterDecisions.BlockStealingAmbassador, actor_id, influence, bank, p_view)
+    elif action == ActionType.Block_Steal_Captain:
+        return minimax_block_action(currDepth, targetDepth, ActionType.Steal, possible_counteractor_ids[0], CounterDecisions.BlockStealingCaptain, actor_id, influence, bank, p_view)
+
     num_players = len(influence)
     possible_counters = action.value[1]
 
@@ -154,10 +168,10 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
             for counter_actor in possible_counteractor_ids:
                 possible_counter_actions.append((counter, counter_actor))
 
-    counter_scores = []
+    counter_scores = [None] * len(possible_counter_actions)
+    for i in range(len(possible_counter_actions)):
+        counter, counter_actor = possible_counter_actions[i]
 
-    for counter, counter_actor in possible_counter_actions:
-        # print("counter",counter," counteractor ", counter_actor)
         if action == ActionType.Foreign_aid or action == ActionType.Block_Foreign_Aid:
             if counter == CounterDecisions.DoNothing:
                 ra = RecordedActions.Fail_Block_Foreign
@@ -165,7 +179,8 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
                     p_view.update_action(counter_actor_id, ra, 1)
                 bank[actor_id] += 2
                 _, score = minimax_action(currDepth, targetDepth, (actor_id+1)%num_players, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
                 bank[actor_id] -= 2
                 for counter_actor_id in possible_counteractor_ids:
                     p_view.update_action(counter_actor_id, ra, -1)
@@ -175,30 +190,35 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
                 ra = RecordedActions.Block_Foreign_Aid
                 p_view.update_action(counter_actor, ra, 1)
                 _, score = minimax_block_action(currDepth, targetDepth, action, actor_id, counter, counter_actor, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
                 p_view.update_action(counter_actor, ra, -1)
-
+            
         elif action == ActionType.Tax:
             if counter == CounterDecisions.DoNothing:
                 bank[actor_id] += 3
                 _, score = minimax_action(currDepth, targetDepth, (actor_id+1)%num_players, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
                 bank[actor_id] -= 3
 
                 #challenge when the counteractor does not believe actor == duke 
             elif counter == CounterDecisions.Challenge:
                 _, score = minimax_chal_action(currDepth, targetDepth, action, actor_id, counter, counter_actor, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
 
         elif action == ActionType.Exchange:
             if counter == CounterDecisions.DoNothing:
                 _,score = minimax_action(currDepth, targetDepth, (actor_id+1)%num_players, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
 
                 #challenge when the counteractor does not believe actor == ambassador
             elif counter == CounterDecisions.Challenge:
                 _, score = minimax_chal_action(currDepth, targetDepth, action, actor_id, counter, counter_actor, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
 
         elif action == ActionType.Steal or action == ActionType.Block_Steal_Captain or action == ActionType.Block_Steal_Ambassador:
             if counter == CounterDecisions.DoNothing:
@@ -208,7 +228,8 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
                 bank[actor_id] += stolen_val
                 bank[counter_actor] -= stolen_val
                 _, score = minimax_action(currDepth, targetDepth, (actor_id+1)%num_players, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
                 bank[counter_actor] += stolen_val
                 bank[actor_id] -= stolen_val
                 p_view.update_action(counter_actor, ra, -1)
@@ -216,13 +237,15 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
                 #challenge is when the counteractor does not believe actor == captain
             elif counter == CounterDecisions.Challenge:
                 _, score = minimax_chal_action(currDepth, targetDepth, action, actor_id, counter, counter_actor, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
 
             else:# when counteractor says they block the steal 
                 ra = RecordedActions.Block_Steal
                 p_view.update_action(counter_actor, ra, 1)
                 _, score = minimax_block_action(currDepth, targetDepth, action, actor_id, counter, counter_actor, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
                 p_view.update_action(counter_actor, ra, -1)
 
         
@@ -233,7 +256,8 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
                 bank[actor_id] -= 3
                 influence[counter_actor] -= 1
                 _, score = minimax_action(currDepth, targetDepth, (actor_id+1)%num_players, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
                 influence[counter_actor] += 1
                 bank[actor_id] += 3
                 p_view.update_action(counter_actor, ra, -1)
@@ -241,16 +265,19 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
                 #challenge is when the counteractor does not believe actor == assassin
             elif counter == CounterDecisions.Challenge:
                 _, score = minimax_chal_action(currDepth, targetDepth, action, actor_id, counter, counter_actor, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
 
             else:# when counteractor says they block the assassination 
                 ra = RecordedActions.Block_Assassination
                 p_view.update_action(counter_actor, ra, 1)
                 _, score = minimax_block_action(currDepth, targetDepth, action, actor_id, counter, counter_actor, influence, bank, p_view)
-                counter_scores.append(score)
+                #counter_scores.append(score)
+                counter_scores[i] = score
                 p_view.update_action(counter_actor, ra, -1)
         else:
             raise Exception("{} cannot be countered".format(action))
+
     diff_scores = [0]
     do_nothing_score = counter_scores[0]
     for i in range(1, len(possible_counter_actions)):
@@ -264,6 +291,7 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
 def minimax_block_action(currDepth: int, targetDepth: int, action: ActionType, p_id:int, cAction: CounterDecisions, counter_actor_id: int, \
         influence: List[int], bank: List[int], p_view: PlayerView) -> (CounterDecisions, List[float]):
     #Should always call down to miniMaxAction
+    sys.stdout = sys.__stdout__
     num_players = len(influence)
     counter_scores = []
     possible_counters = [CounterDecisions.DoNothing, CounterDecisions.Challenge]
@@ -274,7 +302,7 @@ def minimax_block_action(currDepth: int, targetDepth: int, action: ActionType, p
         if counter == CounterDecisions.DoNothing:
              _,score = minimax_action(currDepth, targetDepth, (p_id+1)%num_players, influence, bank, p_view)
              counter_scores.append(score)
-        if action == ActionType.Foreign_aid or action == ActionType.Block_Foreign_Aid:
+        elif action == ActionType.Foreign_aid or action == ActionType.Block_Foreign_Aid:
             prob_duke = (ca_claimed[4]+1)/(sum(ca_claimed)+5)
 
             # checking the score in case of a success => when counteractor is not duke 
@@ -343,7 +371,6 @@ def minimax_block_action(currDepth: int, targetDepth: int, action: ActionType, p
     my_scores = list(map(lambda l : l[p_id], counter_scores))
     my_scores = np.array(my_scores)
     max_idx = np.argmax(my_scores)
-
     return (possible_counters[max_idx], counter_scores[max_idx])
 
 def minimax_chal_action(currDepth: int, targetDepth: int, action: ActionType, p_id:int, cAction: CounterDecisions, counter_actor_id: int, \
@@ -354,7 +381,9 @@ def minimax_chal_action(currDepth: int, targetDepth: int, action: ActionType, p_
     ca_claimed = p_view.claimed_cards([actor_player])[0]
 
     if action == ActionType.Tax:
-        prob_duke = (ca_claimed[4]+1)/(sum(ca_claimed)+5)
+        top = (ca_claimed[4]+1)
+        bottom = (sum(ca_claimed)+5)
+        prob_duke = top/bottom
 
         # checking the score in case of a success => when actor is a duke 
         bank[p_id] += 3
@@ -438,7 +467,7 @@ class MinimaxPlayer(HeuristicPlayer):
     def __init__(self, name: str):
         super().__init__(name)
         self.id = "Minimax"
-        self.targetDepth = 2
+        self.targetDepth = 3
         self.target = None
 
     def select_action(self) -> ActionType:
