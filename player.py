@@ -49,7 +49,8 @@ class PlayerView:
             for j in range(len(claims)): #13 
                 for pos, weight in claim_conversion[j]:
                     card_claims[i, pos] += weight * claims[j, i]
-        card_claims = card_claims + 0.2
+
+        card_claims = np.exp(card_claims)
         card_claims = card_claims / np.sum(card_claims)
         return card_claims #p x cards
     
