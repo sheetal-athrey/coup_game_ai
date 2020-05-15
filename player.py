@@ -15,7 +15,7 @@ class PlayerView:
         self.lost_influence = []  # type: List[Player]
 
     #Returns a constants.RecordedActions x players matrix in the s
-    def convert_claims(self, players: List['Player']) -> List[List[int]]:
+    def convert_claims(self, players: List['Player']) -> np.ndarray:
         recorded_actions = [rec_action for rec_action in RecordedActions]
         empty = np.zeros((len(recorded_actions),len(players)))
         for i in range(len(recorded_actions)):
@@ -26,7 +26,7 @@ class PlayerView:
 
         return empty
 
-    def claimed_cards(self, players: List['Player']) -> List[List[int]]:
+    def claimed_cards(self, players: List['Player']) -> np.ndarray:
         card_types = [typ for typ in CardType]
         claim_conversion = { #Ambassador(0), Assassin(1), Contessa(2), Captain(3), Duke(4) -> With respect to card types
             0 : [(4, -.25)],
@@ -49,7 +49,8 @@ class PlayerView:
             for j in range(len(claims)): #13 
                 for pos, weight in claim_conversion[j]:
                     card_claims[i, pos] += weight * claims[j, i]
-        
+        card_claims = card_claims + 0.2
+        card_claims = card_claims / np.sum(card_claims)
         return card_claims #p x cards
     
     def can_FA(self, players: List['Player']) -> bool:

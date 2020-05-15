@@ -152,15 +152,16 @@ if __name__ == "__main__":
             enable_print()
 
             winner_index = board.get_index_of_player(winner)
-
+            print(winner_index)
             json_update_info.append([initial_cards, winner_index, player_types])
 
             if winner_index in results:
                 results[winner_index] += 1
             else:
                 results[winner_index] = 1
-            
-        print("results {}".format(results))
+        enable_print()
+        for idx in results.keys():
+            print(idx, results[idx], player_types[idx])
         update_json(path_to_json, json_update_info)
 
     except KeyboardInterrupt:
@@ -168,7 +169,8 @@ if __name__ == "__main__":
         print("OKAY")
         board.display()
         print(initial_cards)
-        print("results {}".format(results))
+        for idx in results.keys():
+            print(idx, results[idx], player_types[idx])
 
 
 

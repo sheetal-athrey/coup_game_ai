@@ -309,7 +309,7 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
 def minimax_block_action(currDepth: int, targetDepth: int, action: ActionType, p_id:int, cAction: CounterDecisions, counter_actor_id: int, \
         influence: List[int], bank: List[int], p_view: PlayerView) -> (CounterDecisions, List[float]):
     #Should always call down to miniMaxAction
-    sys.stdout = sys.__stdout__
+    # sys.stdout = sys.__stdout__
     num_players = len(influence)
     counter_scores = []
     possible_counters = [CounterDecisions.DoNothing, CounterDecisions.Challenge]
@@ -485,7 +485,7 @@ class MinimaxPlayer(HeuristicPlayer):
     def __init__(self, name: str):
         super().__init__(name)
         self.id = "Minimax"
-        self.targetDepth = 2
+        self.targetDepth = 4
         self.target = None
 
     def select_action(self) -> ActionType:
