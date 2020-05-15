@@ -41,7 +41,11 @@ def generate_possible_actions(p_id: int, influence_list: List[int], bank_list: L
 
 def eval(influence: List[int], bank: List[int], p_view: PlayerView) -> List[int]:
     # high is good.
+    # out = []
+    # for i in range(influece):
+    #     out.append()
     return np.array(influence)
+
 
 ########################################################################################################################
 # Any place that requires multiple calls to get a single score value should just use the expected probability as weights for the child scores
@@ -467,7 +471,7 @@ class MinimaxPlayer(HeuristicPlayer):
     def __init__(self, name: str):
         super().__init__(name)
         self.id = "Minimax"
-        self.targetDepth = 3
+        self.targetDepth = 2
         self.target = None
 
     def select_action(self) -> ActionType:

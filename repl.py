@@ -8,7 +8,7 @@ from board import Board
 from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple, Optional
-from utils import check_win, get_alive_opponents, process_counter, lose_card
+from utils import check_win, get_alive_opponents, process_counter, lose_card, block_print
 from constants import RecordedActions, prompt_user, get_action_type_from_counter_decision, get_card_from_counter_decision, SELECT_ACTION_STRING, CounterDecisions
 
 
@@ -38,6 +38,7 @@ def repl(board: Board) -> Player:
     players - Players list - A list of player objects that represent the players.
     board - Board - a fresh board to start the game
     """
+    block_print()
     game_over, winner = check_win(board.players)
     while not game_over:
         p_turn = board.players[board.turn]
