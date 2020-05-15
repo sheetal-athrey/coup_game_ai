@@ -41,10 +41,24 @@ def generate_possible_actions(p_id: int, influence_list: List[int], bank_list: L
 
 def eval(influence: List[int], bank: List[int], p_view: PlayerView) -> List[int]:
     # high is good.
-    # out = []
-    # for i in range(influece):
-    #     out.append()
-    return np.array(influence)
+    out = []
+    inf_value = 100
+    money_value = 10
+
+    for i in range(len(influence)):
+        inf = influence[i]
+        money = bank[i]
+        score = 0
+        if inf >= 1:
+            #Add scores
+            score += inf * inf_value
+            score += money * money_value
+        out.append(score)
+
+    #normalize score to be 100
+    out = np.array(out)
+    out = out * (100.0 / np.sum(out))
+    return out
 
 
 ########################################################################################################################
@@ -61,8 +75,8 @@ def minimax_action(currDepth: int, targetDepth: int, p_id: int, influence: List[
 
     influence_array = np.array(influence)
     if currDepth == targetDepth or (influence_array > 0).sum() == 1:
-        #return (None, None), eval(influence, bank, p_view)
-        return (None,None), randomPlayout(influence, bank, p_id, 5)
+        return (None, None), eval(influence, bank, p_view)
+        #return (None,None), randomPlayout(influence, bank, p_id, 5)
 
     # Increment depth check
     currDepth += 1

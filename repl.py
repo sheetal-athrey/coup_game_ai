@@ -38,19 +38,19 @@ def repl(board: Board) -> Player:
     players - Players list - A list of player objects that represent the players.
     board - Board - a fresh board to start the game
     """
-    block_print()
     game_over, winner = check_win(board.players)
     while not game_over:
+        block_print()
         p_turn = board.players[board.turn]
-        print("                     Current Turn: ", p_turn.name)
-        print("                     Player's influence ", [p.influence for p in board.players])
-        print("                     Player's bank ", [p.bank for p in board.players])
-        print("                     Player's hand size", [len(p.hand) for p in board.players])
+        # print("                     Current Turn: ", p_turn.name)
+        # print("                     Player's influence ", [p.influence for p in board.players])
+        # print("                     Player's bank ", [p.bank for p in board.players])
+        # print("                     Player's hand size", [len(p.hand) for p in board.players])
 
         if p_turn.influence <= 0:
             board.end_turn()
         else:
-            print("THIS IS P_TURN", p_turn.name)
+            #print("THIS IS P_TURN", p_turn.name)
             if isinstance(p_turn, RandomPlayer) or isinstance(p_turn, HeuristicPlayer):
                 selected_action = p_turn.select_action()
                 process_action(selected_action, p_turn, board)
