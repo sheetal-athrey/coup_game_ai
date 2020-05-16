@@ -47,8 +47,13 @@ def create_player(player_type: str, player_num: int):
         return TruthPlayer(player_num)
     elif "Heuristic" == player_type:
         return HeuristicPlayer(player_num)
-    elif "Minimax":
-        return MinimaxPlayer(player_num)
+    elif "Minimax" in player_type:
+        if "4" in player_type:
+            return MinimaxPlayer(player_num, 4)
+        elif "3" in player_type:
+            return MinimaxPlayer(player_num, 3)
+        else:
+            return MinimaxPlayer(player_num, 2)
     else:
         return Player(player_num)
 

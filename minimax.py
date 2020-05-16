@@ -493,10 +493,10 @@ def minimax_chal_action(currDepth: int, targetDepth: int, action: ActionType, p_
         raise Exception("{} cannot be countered".format(action)) 
 
 class MinimaxPlayer(HeuristicPlayer):
-    def __init__(self, name: str):
+    def __init__(self, name: str, depth: int = 2):
         super().__init__(name)
-        self.id = "Minimax"
-        self.targetDepth = 3
+        self.targetDepth = depth
+        self.id = "Minimax" + str(self.targetDepth)
         self.target = None
 
     def select_action(self) -> ActionType:
