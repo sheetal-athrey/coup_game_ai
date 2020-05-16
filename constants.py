@@ -1,5 +1,5 @@
 import os
-from enum import Enum, auto
+from enum import Enum
 
 HELP_STRING = """
 To play the following actions type 'play #' with # being any of the corresponding numbers:
@@ -129,7 +129,7 @@ def get_action_text(action: ActionType) -> str:
 
 
 def get_action_type_from_counter_decision(decision: CounterDecisions) -> ActionType:
-    print(decision)
+    print("DECISION", decision)
     if CounterDecisions.BlockAssassination == decision:
         return ActionType.Block_Assassination
     elif CounterDecisions.BlockForeignAid == decision:

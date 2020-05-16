@@ -82,6 +82,8 @@ def minimax_action(currDepth: int, targetDepth: int, p_id: int, influence: List[
     currDepth += 1
     possible_actions = generate_possible_actions(p_id, influence, bank)
 
+
+
     action_scores = []
     alive_opponents = get_alive_opponent_ids(influence, p_id)
 
@@ -186,7 +188,7 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
             for counter_actor in possible_counteractor_ids:
                 possible_counter_actions.append((counter, counter_actor))
 
-    counter_scores = [None] * len(possible_counter_actions)
+    counter_scores = [0.] * len(possible_counter_actions)
     for i in range(len(possible_counter_actions)):
         counter, counter_actor = possible_counter_actions[i]
 
@@ -303,11 +305,13 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
         diff_scores.append(counter_scores[i][idx]-do_nothing_score[idx])
     diff_scores_array = np.array(diff_scores)
     max_diff = np.argmax(diff_scores_array)
-    return possible_counters[max_diff], counter_scores[max_diff]
+
+    # return possible_counters[max_diff], counter_scores[max_diff]
+    return possible_counter_actions[max_diff], counter_scores[max_diff]
 
 
 def minimax_block_action(currDepth: int, targetDepth: int, action: ActionType, p_id:int, cAction: CounterDecisions, counter_actor_id: int, \
-        influence: List[int], bank: List[int], p_view: PlayerView) -> (CounterDecisions, List[float]):
+        influence: List[int], bank: List[int], p_view: PlayerView) -> ((CounterDecisions, int), List[float]):
     #Should always call down to miniMaxAction
     # sys.stdout = sys.__stdout__
     num_players = len(influence)
@@ -389,7 +393,7 @@ def minimax_block_action(currDepth: int, targetDepth: int, action: ActionType, p
     my_scores = list(map(lambda l : l[p_id], counter_scores))
     my_scores = np.array(my_scores)
     max_idx = np.argmax(my_scores)
-    return (possible_counters[max_idx], counter_scores[max_idx])
+    return ((possible_counters[max_idx], -100), counter_scores[max_idx])
 
 def minimax_chal_action(currDepth: int, targetDepth: int, action: ActionType, p_id:int, cAction: CounterDecisions, counter_actor_id: int, \
         influence: List[int], bank: List[int], p_view: PlayerView) -> (CounterDecisions, List[float]):
@@ -506,9 +510,9 @@ class MinimaxPlayer(HeuristicPlayer):
             bank.append(pi.bank)
         (counter, _) = minimax_counter_decisions(0, self.targetDepth, action_taken, self.player_view.players.index(acting_player),
                               [self.player_view.players.index(self)], influence, bank, self.player_view)
-        return counter
-        
 
+        print("COUNTER------------------------------------------------  ", counter)
+        return counter[0]
 
     def select_targeted_player(self, action_taken: ActionType, possible_targets: List['Player']) -> 'Player':
         return self.player_view.players[self.target]

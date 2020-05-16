@@ -40,7 +40,6 @@ def repl(board: Board) -> Player:
     """
     game_over, winner = check_win(board.players)
     while not game_over:
-        block_print()
         p_turn = board.players[board.turn]
         # print("                     Current Turn: ", p_turn.name)
         # print("                     Player's influence ", [p.influence for p in board.players])

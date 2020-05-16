@@ -136,6 +136,8 @@ if __name__ == "__main__":
     with open(path_to_config, "r") as json_config:
         player_configs = json.load(json_config)
 
+    print("PLAYER_CONFIGS", player_configs)
+
     json_update_info = []
     results = {}
     try:
