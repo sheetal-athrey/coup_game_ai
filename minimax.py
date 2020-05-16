@@ -4,6 +4,7 @@ from player import PlayerView, HeuristicPlayer
 from RandomPlayout import randomPlayout
 import numpy as np
 import sys
+import random
 
 
 def get_alive_opponent_ids(influence_list: List[int], current_player: int) -> List[int]:
@@ -17,20 +18,24 @@ def get_alive_opponent_ids(influence_list: List[int], current_player: int) -> Li
     return alive_opponents
 
 
-def generate_possible_actions(p_id: int, influence_list: List[int], bank_list: List[int]) -> List[Tuple[ActionType,Optional[int]]]:
+def generate_possible_actions(p_id: int, influence_list: List[int], bank_list: List[int], p_view:PlayerView
+) -> List[Tuple[ActionType,Optional[int]]]:
 
     if bank_list[p_id] >= 10:
         return [(ActionType.Coup, i) for i in range(len(influence_list)) if (influence_list[i] > 0 and p_id != i)]
 
+    player_p = p_view.players[p_id]
+    claimed_c = p_view.claimed_cards([player_p])[0]
     action_list = []
 
     for action in ActionType:
         if action.value[0] < 7:  # one of the 7 original actions
-            if action == ActionType.Income or action == ActionType.Foreign_aid or action == ActionType.Tax or action == ActionType.Exchange:
+            if action == ActionType.Income or action == ActionType.Foreign_aid or (action == ActionType.Tax and claimed_c[4]>(random.random()/2)) or (action == ActionType.Exchange and claimed_c[0]>(random.random()/2)):
+
                 action_list.append((action, None))
             else:
-                if (action == ActionType.Assassinate and bank_list[p_id] >= 3) or \
-                        (action == ActionType.Steal) or \
+                if (action == ActionType.Assassinate and bank_list[p_id] >= 3 and (claimed_c[1]>random.random()/2)) or \
+                        (action == ActionType.Steal and (claimed_c[3]> random.random()/2)) or \
                         (action == ActionType.Coup and bank_list[p_id] >= 7):
 
                     for player_id in range(len(influence_list)):
@@ -80,7 +85,8 @@ def minimax_action(currDepth: int, targetDepth: int, p_id: int, influence: List[
 
     # Increment depth check
     currDepth += 1
-    possible_actions = generate_possible_actions(p_id, influence, bank)
+    possible_actions = generate_possible_actions(p_id, influence, bank, p_view)
+    
 
 
 
@@ -88,6 +94,7 @@ def minimax_action(currDepth: int, targetDepth: int, p_id: int, influence: List[
     alive_opponents = get_alive_opponent_ids(influence, p_id)
 
     for action, target in possible_actions:
+
         if action == ActionType.Income:
 
             # Update player view with Income Taken
@@ -489,7 +496,7 @@ class MinimaxPlayer(HeuristicPlayer):
     def __init__(self, name: str):
         super().__init__(name)
         self.id = "Minimax"
-        self.targetDepth = 4
+        self.targetDepth = 3
         self.target = None
 
     def select_action(self) -> ActionType:
