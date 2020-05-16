@@ -8,7 +8,7 @@ from board import Board
 from deck import Deck
 from card import Card, CardType
 from typing import List, Tuple, Optional
-from utils import check_win, get_alive_opponents, process_counter, lose_card, block_print
+from utils import check_win, get_alive_opponents, process_counter, lose_card, block_print, enable_print
 from constants import RecordedActions, prompt_user, get_action_type_from_counter_decision, get_card_from_counter_decision, SELECT_ACTION_STRING, CounterDecisions
 
 
@@ -52,6 +52,9 @@ def repl(board: Board) -> Player:
             #print("THIS IS P_TURN", p_turn.name)
             if isinstance(p_turn, RandomPlayer) or isinstance(p_turn, HeuristicPlayer):
                 selected_action = p_turn.select_action()
+                enable_print()
+                print(p_turn.name, selected_action)
+                block_print()
                 process_action(selected_action, p_turn, board)
             else:
                 print("{} it is your turn".format(p_turn.name))
@@ -264,5 +267,5 @@ def process_action(action: constants.ActionType, player: Player, board: Board):
                     bottom_cards.append((card, board.deck.size()))
 
             board.update_deck_knowledge(player, bottom_cards)
-            board.update_player_actions(player, RecordedActions.Exchange)
-            board.end_turn()
+        board.update_player_actions(player, RecordedActions.Exchange)
+        board.end_turn()
