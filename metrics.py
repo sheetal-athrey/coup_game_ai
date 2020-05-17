@@ -54,6 +54,13 @@ def create_player(player_type: str, player_num: int):
             return MinimaxPlayer(player_num, 3)
         else:
             return MinimaxPlayer(player_num, 2)
+    elif "Playout" in player_type:
+        if "4" in player_type:
+            return MinimaxPlayer(player_num, 4, True)
+        elif "3" in player_type:
+            return MinimaxPlayer(player_num, 3, True)
+        else:
+            return MinimaxPlayer(player_num, 2, True)
     else:
         return Player(player_num)
 
