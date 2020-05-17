@@ -50,9 +50,15 @@ class PlayerView:
                 for pos, weight in claim_conversion[j]:
                     card_claims[i, pos] += weight * claims[j, i]
 
+        return card_claims #p x cards
+
+
+    def mod_claimed_cards(self, players: List['Player']) -> np.ndarray:
+        card_claims = self.claimed_cards(players)
         card_claims = np.exp(card_claims)
         card_claims = card_claims / np.sum(card_claims)
-        return card_claims #p x cards
+        return card_claims
+
     
     def can_FA(self, players: List['Player']) -> bool:
         for p in players:

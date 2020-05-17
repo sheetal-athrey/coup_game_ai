@@ -116,6 +116,44 @@ def create_custom_board(player_configs) -> Board:
 
     return board
 
+def metrics(path_to_config, path_to_json, num_trials):
+    with open(path_to_config, "r") as json_config:
+        player_configs = json.load(json_config)
+
+    json_update_info = []
+    results = {}
+    try:
+        for i in tqdm(range(num_trials)):
+            block_print()
+            board = create_custom_board(player_configs)
+
+            initial_cards = board.get_player_cards()
+            player_types = board.get_player_types()
+            winner = repl(board)
+
+
+            winner_index = board.get_index_of_player(winner)
+            json_update_info.append([initial_cards, winner_index, player_types])
+
+            if winner_index in results:
+                results[winner_index] += 1
+            else:
+                results[winner_index] = 1
+        enable_print()
+        res = []
+        for idx in results.keys():
+            print(idx, results[idx], player_types[idx])
+            res.append((idx, results[idx], player_types[idx]))
+        update_json(path_to_json, json_update_info)
+
+    except KeyboardInterrupt:
+        enable_print()
+        print("OKAY")
+        board.display()
+        print(initial_cards)
+        for idx in results.keys():
+            print(idx, results[idx], player_types[idx])
+
 
 if __name__ == "__main__":
     """
@@ -137,47 +175,4 @@ if __name__ == "__main__":
         raise Exception("Number of trials is not valid", sys.argv[3])
 
     num_trials = int(sys.argv[3])
-
-    with open(path_to_config, "r") as json_config:
-        player_configs = json.load(json_config)
-
-    print("PLAYER_CONFIGS", player_configs)
-
-    json_update_info = []
-    results = {}
-    try:
-        for i in tqdm(range(num_trials)):
-            block_print()
-            print("--------------------------------------------------------", "GAME", i, "------------------------------------------------")
-            print("########################################################################################################################")
-            board = create_custom_board(player_configs)
-
-            initial_cards = board.get_player_cards()
-            player_types = board.get_player_types()
-            winner = repl(board)
-
-            enable_print()
-
-            winner_index = board.get_index_of_player(winner)
-            print(winner_index)
-            json_update_info.append([initial_cards, winner_index, player_types])
-
-            if winner_index in results:
-                results[winner_index] += 1
-            else:
-                results[winner_index] = 1
-        enable_print()
-        for idx in results.keys():
-            print(idx, results[idx], player_types[idx])
-        update_json(path_to_json, json_update_info)
-
-    except KeyboardInterrupt:
-        enable_print()
-        print("OKAY")
-        board.display()
-        print(initial_cards)
-        for idx in results.keys():
-            print(idx, results[idx], player_types[idx])
-
-
-
+    metrics(path_to_config, path_to_json, num_trials)

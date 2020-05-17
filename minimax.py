@@ -25,7 +25,7 @@ def generate_possible_actions(p_id: int, influence_list: List[int], bank_list: L
         return [(ActionType.Coup, i) for i in range(len(influence_list)) if (influence_list[i] > 0 and p_id != i)]
 
     player_p = p_view.players[p_id]
-    claimed_c = p_view.claimed_cards([player_p])[0]
+    claimed_c = p_view.mod_claimed_cards([player_p])[0]
     action_list = []
 
     for action in ActionType:
@@ -320,12 +320,11 @@ def minimax_counter_decisions(currDepth: int, targetDepth: int, action: ActionTy
 def minimax_block_action(currDepth: int, targetDepth: int, action: ActionType, p_id:int, cAction: CounterDecisions, counter_actor_id: int, \
         influence: List[int], bank: List[int], p_view: PlayerView) -> ((CounterDecisions, int), List[float]):
     #Should always call down to miniMaxAction
-    # sys.stdout = sys.__stdout__
     num_players = len(influence)
     counter_scores = []
     possible_counters = [CounterDecisions.DoNothing, CounterDecisions.Challenge]
     counter_actor_player = p_view.players[counter_actor_id]
-    ca_claimed = p_view.claimed_cards([counter_actor_player])[0]
+    ca_claimed = p_view.mod_claimed_cards([counter_actor_player])[0]
 
     for counter in possible_counters: 
         if counter == CounterDecisions.DoNothing:
@@ -407,7 +406,7 @@ def minimax_chal_action(currDepth: int, targetDepth: int, action: ActionType, p_
     
     num_players = len(influence)
     actor_player = p_view.players[p_id]
-    ca_claimed = p_view.claimed_cards([actor_player])[0]
+    ca_claimed = p_view.mod_claimed_cards([actor_player])[0]
 
     if action == ActionType.Tax:
         top = (ca_claimed[4]+1)
