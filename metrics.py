@@ -152,7 +152,7 @@ def metrics(path_to_config, path_to_json, num_trials):
             print(idx, results[idx], player_types[idx])
             res.append((idx, results[idx], player_types[idx]))
         #update_json(path_to_json, json_update_info)
-        with open("H_pos_stats.txt", "a+") as f:
+        with open("m2_pos_stats.txt", "a+") as f:
             s = "path_to_config: {}, results: {}\n".format(path_to_config, res)
             f.write(s)
 
