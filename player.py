@@ -289,6 +289,8 @@ class HeuristicPlayer(Player):
             CardType.Contessa : .3,
             CardType.Ambassador : .5,
         }
+        self.steal_counter = 0
+        self.exchange_counter = 0
 
     def select_action(self) -> ActionType:
         #Basic Incorrect#
@@ -299,9 +301,6 @@ class HeuristicPlayer(Player):
 
         thought_types = []
         print("opp thinks I am: {}".format(opp_think[0]))
-        # if np.allclose(opp_think[0], np.zeros(len(opp_think[0]))): 
-        #     return ActionType.Foreign_aid
-        # else: 
         for c_idx in (np.argsort(opp_think[0])[::-1])[:self.influence]:
             if opp_think[0][c_idx] != 0:
                 thought_types.append(card_types[c_idx])
@@ -319,16 +318,20 @@ class HeuristicPlayer(Player):
                 return ActionType.Assassinate
             elif CardType.Duke in hand_types:
                 return ActionType.Tax
-            elif (not CardType.Captain in hand_types):
+            elif (not CardType.Captain in hand_types) and self.exchange_counter < 10:
+                self.exchange_counter +=1
                 return ActionType.Exchange
-            elif can_steal:
+            elif can_steal and self.steal_counter < 10:
+                self.steal_counter += 1
                 return ActionType.Steal
         else: 
             if CardType.Assassin in thought_types and self.bank >= 3 and can_assassinate:
                 return ActionType.Assassinate
-            elif len(thought_types.intersection(set(hand_types))) == len(self.hand):
+            elif len(thought_types.intersection(set(hand_types))) == len(self.hand) and self.exchange_counter < 10:
+                self.exchange_counter +=1
                 return ActionType.Exchange
-            elif CardType.Captain in thought_types and can_steal :
+            elif CardType.Captain in thought_types and can_steal and self.steal_counter < 10:
+                self.steal_counter +=1
                 return ActionType.Steal
             elif CardType.Duke in thought_types:
                 return ActionType.Tax
@@ -443,16 +446,16 @@ class HeuristicPlayer(Player):
         for card in known_cards:
             c_idx = card_types.index(card.type)
             if card.type == CardType.Ambassador:
-                weights[4] += .33 * inv_influence
+                weights[4] += .5 * inv_influence
             elif card.type == CardType.Captain:
-                weights[5] += .33 * inv_influence
+                weights[5] += .5 * inv_influence
             elif card.type == CardType.Contessa:
                 weights[3] += 1
             elif card.type == CardType.Duke:
-                weights[2] += .33 * inv_influence
+                weights[2] += .5 * inv_influence
             
             if c_idx in action_to_card_idx[action_taken]:
-                weights[1] += .167 * inv_influence
+                weights[1] += .33 * inv_influence
         
         decision_scores = np.multiply(one_hot_p_counters, weights)
         print("decision scores: {}".format(decision_scores))
