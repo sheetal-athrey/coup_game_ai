@@ -1,5 +1,5 @@
 from board import Board, ContinuationBoard
-from player import Player, RandomPlayer
+from player import Player, RandomPlayer, TruthPlayer
 from card import Card, CardType
 from deck import Deck
 from copy import deepcopy as copy
@@ -33,7 +33,7 @@ def randomPlayout(influence: List[int], bank : List[int], turn: int, num_playout
     for i in range(len(influence)):
         #Random player does not use any additional info, no need to copy over anything
         #replace money and influence to match -> Also fix cards if not known
-        rp = RandomPlayer("P"+str(i))
+        rp = TruthPlayer("P"+str(i))
         player_list.append(rp)
         if influence[i] <= 0:
             lost_inf.append(rp)
