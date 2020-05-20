@@ -1,0 +1,4 @@
+[
+    	["Minimax4"],
+	["Minimax3"]
+]

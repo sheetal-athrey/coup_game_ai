@@ -54,7 +54,7 @@ def repl(board: Board) -> Player:
                 selected_action = p_turn.select_action()
                 #enable_print()
                 print(p_turn.name, selected_action)
-                block_print()
+                # block_print()
                 process_action(selected_action, p_turn, board)
             else:
                 print("{} it is your turn".format(p_turn.name))

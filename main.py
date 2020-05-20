@@ -39,10 +39,10 @@ if __name__ == '__main__':
     now = time.time()
     with open("eval/trevor.txt", "a+") as f:
         wins = [0,0]
-        for x in tqdm(range(100)):
+        for x in tqdm(range(1)):
             # Instantiate Players
-            p1 = MinimaxPlayer("P1")
-            p2 = RandomPlayer("P2")
+            p1 = Player("P1")
+            p2 = HeuristicPlayer("P2")
             player_list = [p1, p2]
             # for x in range(num_players):
             #     # print("What is your name p{}?".format(x+1))
