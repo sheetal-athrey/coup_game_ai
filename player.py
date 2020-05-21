@@ -94,8 +94,8 @@ class Player:
         self.player_view = PlayerView()
 
     def display_hand(self):
-        print("{} has the following cards:".format(self.name))
-        print(self.hand)
+        # print("{} has the following cards:".format(self.name))
+        # print(self.hand)
         for i in range(len(self.hand)):
             card = self.hand[i]
             print("{} - Type: {}".format(i, card.type))
@@ -300,7 +300,7 @@ class HeuristicPlayer(Player):
         opp_think = self.player_view.claimed_cards([self])
 
         thought_types = []
-        print("opp thinks I am: {}".format(opp_think[0]))
+        # print("opp thinks I am: {}".format(opp_think[0]))
         for c_idx in (np.argsort(opp_think[0])[::-1])[:self.influence]:
             if opp_think[0][c_idx] != 0:
                 thought_types.append(card_types[c_idx])
@@ -458,7 +458,7 @@ class HeuristicPlayer(Player):
                 weights[1] += .33 * inv_influence
         
         decision_scores = np.multiply(one_hot_p_counters, weights)
-        print("decision scores: {}".format(decision_scores))
+        # print("decision scores: {}".format(decision_scores))
         return all_counters[np.argmax(decision_scores)]
 
     def select_targeted_player(self, action_taken: ActionType, possible_targets: List['Player']) -> 'Player':
